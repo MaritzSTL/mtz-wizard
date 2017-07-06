@@ -1,0 +1,34 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<!--
+`mtz-wizard`
+
+
+@demo demo/index.html
+-->
+
+<dom-module id="mtz-wizard">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]!</h2>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'mtz-wizard',
+
+      properties: {
+        prop1: {
+          type: String,
+          value: 'mtz-wizard',
+        },
+      },
+
+    });
+  </script>
+</dom-module>
