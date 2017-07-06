@@ -20,7 +20,102 @@
       <h3>Basic mtz-wizard demo</h3>
       <demo-snippet>
         <template>
-          <mtz-wizard></mtz-wizard>
+          <demo-el></demo-el>
+          <dom-module id="demo-el">
+            <template>
+              <style>
+                .step[active] {
+                  background-color: red;
+                }
+                .step:not([active]) {
+                  cursor: pointer;
+                }
+                .step:not([active]):hover {
+                  background-color: gray;
+                }
+              </style>
+              <button on-tap="toggleActive">
+                Toggle Active
+              </button>
+              <button on-tap="toggleStep">
+                Toggle Step
+              </button>
+              <h3>Available Steps</h3>
+              <template is="dom-repeat" items="[[_steps]]" as="step">
+                <div class="step" active$="[[step.active]]" on-tap="setStep" name="[[step.name]]">[[step.name]]</div>
+              </template>
+              <button on-tap="nextStep">
+                Next Step
+              </button>
+              <button on-tap="prevStep">
+                Previous Step
+              </button>
+              <h3>Wizard</h3>
+              <mtz-wizard active="[[active]]" steps="{{steps}}" selected="{{selected}}" id="wizard">
+                <template is="dom-if" if="[[!hideStep]]" restamp>
+                  <div wizard-step name="conditional-attr-step">
+                    conditional-attr-step
+                  </div>
+                </template>
+                <div class="wizard-step" name="class-step">
+                  class-step
+                </div>
+                <div wizard-step class="wizard-step" name="class-attr-step">
+                  class-attr-step
+                </div>
+                <div name="ignored-step">
+                  should never be visible
+                </div>
+              </mtz-wizard>
+            </template>
+            <script>
+              Polymer({
+                is: 'demo-el',
+                observers: ['__stepsChanged(steps, selected)'],
+                properties: {
+                  active: {
+                    type: Boolean,
+                    value: true
+                  },
+                  hideStep: {
+                    type: Boolean,
+                    value: false
+                  },
+                  selected: String,
+                  steps: Array,
+                  _steps: {
+                    type: Array,
+                    value() {
+                      return [];
+                    }
+                  }
+                },
+                nextStep() {
+                  this.$.wizard.next();
+                },
+                prevStep() {
+                  this.$.wizard.previous();
+                },
+                setStep(event) {
+                  this.$.wizard.select(event.target.name);
+                },
+                toggleActive() {
+                  this.active = !this.active;
+                },
+                toggleStep() {
+                  this.hideStep = !this.hideStep;
+                },
+                __stepsChanged(steps) {
+                  this.set('_steps', (steps || []).map((step) => {
+                    return {
+                      name: step.getAttribute('name'),
+                      active: step.classList.contains('iron-selected')
+                    };
+                  }));
+                }
+              });
+            </script>
+          </dom-module>
         </template>
       </demo-snippet>
     </div>

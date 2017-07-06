@@ -1,34 +1,169 @@
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-pages/iron-pages.html">
 
 <!--
 `mtz-wizard`
-
+Maintains a curated list of steps for use in the stepper and manages selected state of the steps, provides convenience
+methods for navigation and `wizard-form` interactions, is responsible for rendering the currently active step.
 
 @demo demo/index.html
 -->
-
 <dom-module id="mtz-wizard">
   <template>
-    <style>
-      :host {
-        display: block;
-      }
-    </style>
-    <h2>Hello [[prop1]]!</h2>
+    <iron-pages
+      id="selector"
+      attr-for-selected="[[attrForSelected]]"
+      selectable="[[selectable]]"
+      selected-attribute="[[selectedAttribute]]"
+      selected-class="[[selectedClass]]"
+      selected-item="{{selectedItem}}"
+      selected="{{selected}}"
+      fallback-selection="[[fallbackSelection]]"
+      items="{{steps}}">
+      <template
+        is="dom-if"
+        if="[[active]]"
+        restamp>
+        <slot></slot>
+      </template>
+    </iron-pages>
   </template>
 
   <script>
     Polymer({
-
       is: 'mtz-wizard',
-
       properties: {
-        prop1: {
-          type: String,
-          value: 'mtz-wizard',
+        /* Determines if this wizard is active or not, used to attach/detach the steps from the DOM for data reset */
+        active: {
+          type: Boolean,
+          value: false
         },
+        /* The attribute to use to match the selection key against */
+        attrForSelected: {
+          type: String,
+          value: 'name'
+        },
+        /* The fallback selection when nothing is selected */
+        fallbackSelection: {
+          type: String,
+          computed: '__computeFallbackSelection(steps, attrForSelected)'
+        },
+        /* This is a CSS selector string. If this is set, only items that match the CSS selector are selectable. */
+        selectable: {
+          type: String,
+          value: '[wizard-step],.wizard-step'
+        },
+        /* The currently selected step, null if no step is selected */
+        selected: {
+          type: String,
+          value: null,
+          notify: true
+        },
+        /* The attribute to set on elements when selected */
+        selectedAttribute: String,
+        /* The class to set on elements when selected. */
+        selectedClass: String,
+        /* The currently selected item */
+        selectedItem: {
+          type: Object,
+          notify: true,
+        },
+        /* The Set of HTMLElements that make up the steps */
+        steps: {
+          type: Array,
+          notify: true
+        }
       },
-
+      /**
+       * Fetches the model from all steps that have a form with a dirty model, returns as a map of step name to model.
+       *
+       * @param {HTMLElement[]} [steps = this.steps]
+       * @param {String} [attr = this.attrForSelected]
+       * @return {Object}
+       */
+      getFormData(steps = this.steps, attr = this.attrForSelected) {
+        const data = (steps || []).reduce((model, step) => {
+          if (step.form && step.form.dirty)
+            model[step.getAttribute(attr)] = step.form.model;
+          return model;
+        }, {});
+        return data;
+      },
+      /**
+       * Changes the currently active step to the next step in the array of steps, loops from end to beginning.
+       *
+       * @return {HTMLElement}
+       */
+      next() {
+        this.$.selector.selectNext();
+        return this.selectedItem;
+      },
+      /**
+       * Changes the currently active step to the previous step in the array of steps, loops from beginning to end.
+       *
+       * @return{HTMLElement}
+       */
+      previous() {
+        this.$.selector.selectPrevious();
+        return this.selectedItem;
+      },
+      /**
+       * Runs the reset logic on every step that has a form bound to it.
+       *
+       * @param {HTMLElement[]} [steps = this.steps]
+       */
+      reset(steps = this.steps) {
+        (steps || []).forEach((step) => {
+          if (step.form) step.form.reset();
+        });
+      },
+      /**
+       * Selects the step at the given key.
+       *
+       * @param {String} key - the key to selecte the step based on
+       * @return {HTMLElement}
+       */
+      select(key) {
+        this.$.selector.select(key);
+        return this.selectedItem;
+      },
+      /**
+       * Selects the step at the given index.
+       *
+       * @param {Number} index
+       * @return {HTMLElement}
+       */
+      selectIndex(index) {
+        this.$.selector.selectIndex(index);
+        return this.selectedItem;
+      },
+      /**
+       * Runs the validation logic on all steps with a form bound to them.
+       *
+       * @param {HTMLElement[]} [steps = this.steps]
+       * @return {Boolean}
+       */
+      validate(steps = this.steps) {
+        return (steps || []).reduce((prev, step) => {
+          let valid = true;
+          if (step.form) valid = step.form.validate();
+          return prev && valid;
+        }, true);
+      },
+      /**
+       * Sets the fallback selection as the first item.
+       * @private
+       *
+       * @param {HTMLElement[]} steps
+       * @param {String} attr - the attrForSelected property
+       * @return {String}
+       */
+      __computeFallbackSelection(steps, attr) {
+        let fallback = '';
+        if (attr && steps && steps.length > 0)
+          fallback = steps[0].getAttribute(attr);
+        return fallback;
+      }
     });
   </script>
 </dom-module>
