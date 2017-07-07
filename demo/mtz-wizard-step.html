@@ -10,6 +10,7 @@
 
     <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
     <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../../iron-form/iron-form.html">
     <link rel="import" href="../mtz-wizard-step.html">
 
     <style is="custom-style" include="demo-pages-shared-styles">
@@ -35,6 +36,50 @@
                   this.active = !this.active;
                   console.log('active', this.active);
                 }
+              });
+            </script>
+          </dom-module>
+        </template>
+      </demo-snippet>
+    </div>
+    <div class="vertical-section-container centered">
+      <h3>Basic mtz-wizard-step demo</h3>
+      <demo-snippet>
+        <template>
+          <demo-el-form></demo-el-form>
+          <dom-module id="demo-el-form">
+            <template>
+              <button on-tap="reset">Reset</button>
+              <button on-tap="validate">Validate</button>
+              <button on-tap="serialize">Serialize</button>
+              <span>Form is Dirty: [[dirty]]</span>
+              <mtz-wizard-step active id="step" required dirty="{{dirty}}">
+                <iron-form wizard-form>
+                  <form is="iron-form">
+                    <label>
+                      First Name
+                      <input required name="firstName" value="John"/>
+                    </label>
+                    <label>
+                      Last Name
+                      <input name="lastName" value="Doe"/>
+                    </label>
+                  </form>
+                </iron-form>
+              </mtz-wizard-step>
+            </template>
+            <script>
+              Polymer({
+                is: 'demo-el-form',
+                reset() {
+                  this.$.step.reset();
+                },
+                validate() {
+                  console.log(this.$.step.validate());
+                },
+                serialize() {
+                  console.log(this.$.step.form.serializeForm());
+                },
               });
             </script>
           </dom-module>

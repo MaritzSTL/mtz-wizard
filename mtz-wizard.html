@@ -86,8 +86,8 @@ methods for navigation and `wizard-form` interactions, is responsible for render
        */
       getFormData(steps = this.steps, attr = this.attrForSelected) {
         const data = (steps || []).reduce((model, step) => {
-          if (step.form && step.form.dirty)
-            model[step.getAttribute(attr)] = step.form.model;
+          if (step.form && step.dirty)
+            model[step.getAttribute(attr)] = step.form.serializeForm();
           return model;
         }, {});
         return data;
@@ -117,7 +117,7 @@ methods for navigation and `wizard-form` interactions, is responsible for render
        */
       reset(steps = this.steps) {
         (steps || []).forEach((step) => {
-          if (step.form) step.form.reset();
+          step.reset();
         });
       },
       /**
@@ -148,9 +148,7 @@ methods for navigation and `wizard-form` interactions, is responsible for render
        */
       validate(steps = this.steps) {
         return (steps || []).reduce((prev, step) => {
-          let valid = true;
-          if (step.form) valid = step.form.validate();
-          return prev && valid;
+          return prev && step.validate();
         }, true);
       },
       /**
