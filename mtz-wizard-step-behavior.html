@@ -1,0 +1,41 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<!--
+`mtz.WizardStepBehavior`
+Works with wizard to register and build out the steps array so stepper can accurately report on the available steps,
+also contains meta-data needed by stepper to display the steps for navigation.
+
+
+@polymerBehavior mtz.WizardStepBehavior
+@demo demo/mtz-wizard-step.html
+-->
+<script>
+  window.mtz = window.mtz || {};
+
+  mtz.WizardStepBehavior = {
+    hostAttributes: {
+      'wizard-step': true
+    },
+    properties: {
+      /* Used to stamp the content for the first time, supports a single lazy-load/API call per wizard instance */
+      active: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true
+      },
+      /* The form associated with this step, or null if one isn't found */
+      form: {
+        type: Object,
+        notify: true,
+        value: null
+      },
+      /* Used by the stepper to give a pretty name */
+      label: String,
+      /* Used to map the UI and API together for validation and data interfacing */
+      name: {
+        type: String,
+        reflectToAttribute: true
+      }
+    }
+  };
+</script>

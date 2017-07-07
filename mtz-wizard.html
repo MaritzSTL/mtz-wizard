@@ -6,7 +6,7 @@
 Maintains a curated list of steps for use in the stepper and manages selected state of the steps, provides convenience
 methods for navigation and `wizard-form` interactions, is responsible for rendering the currently active step.
 
-@demo demo/index.html
+@demo demo/mtz-wizard.html
 -->
 <dom-module id="mtz-wizard">
   <template>
@@ -60,7 +60,10 @@ methods for navigation and `wizard-form` interactions, is responsible for render
           notify: true
         },
         /* The attribute to set on elements when selected */
-        selectedAttribute: String,
+        selectedAttribute: {
+          type: String,
+          value: 'active'
+        },
         /* The class to set on elements when selected. */
         selectedClass: String,
         /* The currently selected item */

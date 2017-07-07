@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>mtz-wizard-step test</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../mtz-wizard-step.html">
+  </head>
+  <body>
+    <test-fixture id="basic">
+      <template>
+        <mtz-wizard-step></mtz-wizard-step>
+      </template>
+    </test-fixture>
+
+    <script>
+      describe('mtz-wizard-step', () => {
+        let element;
+
+        beforeEach(() => {
+          element = fixture('basic');
+        });
+
+        it('should instantiate the element', () => {
+          expect(element.is).to.equal('mtz-wizard-step');
+        });
+      });
+    </script>
+  </body>
+</html>

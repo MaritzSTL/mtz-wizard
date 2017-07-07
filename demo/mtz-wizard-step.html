@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>mtz-wizard-step demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../mtz-wizard-step.html">
+
+    <style is="custom-style" include="demo-pages-shared-styles">
+    </style>
+  </head>
+  <body>
+    <div class="vertical-section-container centered">
+      <h3>Basic mtz-wizard-step demo</h3>
+      <demo-snippet>
+        <template>
+          <demo-el></demo-el>
+          <dom-module id="demo-el">
+            <template>
+              <button on-tap="toggleActiveStatus">Toggle Active</button>
+              <mtz-wizard-step active$="[[active]]">
+                Show some content!!
+              </mtz-wizard-step>
+            </template>
+            <script>
+              Polymer({
+                is: 'demo-el',
+                toggleActiveStatus() {
+                  this.active = !this.active;
+                  console.log('active', this.active);
+                }
+              });
+            </script>
+          </dom-module>
+        </template>
+      </demo-snippet>
+    </div>
+  </body>
+</html>
