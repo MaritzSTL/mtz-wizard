@@ -30,12 +30,14 @@
               </mtz-wizard-step>
             </template>
             <script>
-              Polymer({
-                is: 'demo-el',
-                toggleActiveStatus() {
-                  this.active = !this.active;
-                  console.log('active', this.active);
-                }
+              window.addEventListener('WebComponentsReady', () => {
+                Polymer({
+                  is: 'demo-el',
+                  toggleActiveStatus() {
+                    this.active = !this.active;
+                    console.log('active', this.active);
+                  }
+                });
               });
             </script>
           </dom-module>
@@ -53,7 +55,8 @@
               <button on-tap="validate">Validate</button>
               <button on-tap="serialize">Serialize</button>
               <span>Form is Dirty: [[dirty]]</span>
-              <mtz-wizard-step active id="step" required dirty="{{dirty}}">
+              <span>Form is Invalid: [[invalid]]</span>
+              <mtz-wizard-step active id="step" required dirty="{{dirty}}" invalid="{{invalid}}">
                 <iron-form wizard-form>
                   <form is="iron-form">
                     <label>
@@ -69,17 +72,19 @@
               </mtz-wizard-step>
             </template>
             <script>
-              Polymer({
-                is: 'demo-el-form',
-                reset() {
-                  this.$.step.reset();
-                },
-                validate() {
-                  console.log(this.$.step.validate());
-                },
-                serialize() {
-                  console.log(this.$.step.form.serializeForm());
-                },
+              window.addEventListener('WebComponentsReady', () => {
+                Polymer({
+                  is: 'demo-el-form',
+                  reset() {
+                    this.$.step.reset();
+                  },
+                  validate() {
+                    console.log(this.$.step.validate());
+                  },
+                  serialize() {
+                    console.log(this.$.step.form.serializeForm());
+                  }
+                });
               });
             </script>
           </dom-module>

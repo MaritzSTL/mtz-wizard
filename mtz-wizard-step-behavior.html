@@ -20,7 +20,8 @@
       active: {
         type: Boolean,
         value: false,
-        reflectToAttribute: true
+        reflectToAttribute: true,
+        notify: true
       },
       /* Used to track the dirty state of the form, if there is one */
       dirty: {
@@ -32,7 +33,6 @@
       },
       /* The form associated with this step, or null if one isn't found */
       form: {
-        // TODO: once wizard-form is available, need to add a way to register the form
         type: Object,
         notify: true,
         value: null
@@ -76,7 +76,7 @@
       this.addEventListener('change', this.__updateDirty);
 
       this.__nodeObserver = Polymer.dom(this).observeNodes(() => {
-        this.set('form', Polymer.dom(this).queryDistributedElements(this.formSelector)[0]);
+        this.set('form', Polymer.dom(this).queryDistributedElements(this.formSelector)[0] || null);
       });
     },
     detached() {
@@ -91,7 +91,7 @@
      * Reverts the form back to initial state if one exists, clears validity and dirty states.
      */
     reset() {
-      this.form.reset();
+      if (this.form) this.form.reset();
       this._setInvalid(false);
       this._setDirty(false);
     },

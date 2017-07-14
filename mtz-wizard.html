@@ -6,7 +6,7 @@
 Maintains a curated list of steps for use in the stepper and manages selected state of the steps, provides convenience
 methods for navigation and `wizard-form` interactions, is responsible for rendering the currently active step.
 
-@demo demo/mtz-wizard.html
+@demo demo/index.html
 -->
 <dom-module id="mtz-wizard">
   <template>
@@ -148,7 +148,7 @@ methods for navigation and `wizard-form` interactions, is responsible for render
        */
       validate(steps = this.steps) {
         return (steps || []).reduce((prev, step) => {
-          return prev && step.validate();
+          return prev && (step.validate ? step.validate() : true);
         }, true);
       },
       /**

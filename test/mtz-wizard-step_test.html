@@ -20,14 +20,165 @@
 
     <script>
       describe('mtz-wizard-step', () => {
-        let element;
+        let element, parent;
 
         beforeEach(() => {
           element = fixture('basic');
+          parent = element.parentNode;
         });
 
-        it('should instantiate the element', () => {
-          expect(element.is).to.equal('mtz-wizard-step');
+        /* Setters */
+        describe('hostAttributes', () => {
+          it('should set [wizard-step]', () => {
+            expect(element.getAttribute('wizard-step')).to.equal('');
+          });
+        });
+        /* Lifecycle Events */
+        describe('ready()', () => {
+          it('should register __updateDirty as a bound function', () => {
+            const spy = sinon.spy(element.__updateDirty, 'bind');
+            element[`${Polymer.Element ? '' : '_'}ready`]();
+            expect(spy).calledWith(element);
+          });
+        });
+        describe('attached()', () => {
+          it('should register an event listener for change', () => {
+            parent.removeChild(element);
+            element.addEventListener = sinon.spy();
+            parent.appendChild(element);
+            expect(element.addEventListener).calledWith('change', element.__updateDirty);
+          });
+          it('should create a nodeObserver', () => {
+            expect(typeof element.__nodeObserver).to.equal('object');
+          });
+        });
+        describe('detached()', () => {
+          let spy;
+
+          beforeEach(() => {
+            spy = sinon.spy(element, 'removeEventListener');
+            parent.removeChild(element);
+          });
+
+          it('should remove the change event listener', () => {
+            expect(spy).calledWith('change', element.__updateDirty);
+          });
+          it('should remove the nodeObserver', () => {
+            expect(element.__nodeObserver).to.equal(null);
+          });
+        });
+        /* Public Methods */
+        describe('reset()', () => {
+          it('should set invalid to false', () => {
+            element._setInvalid(true);
+            expect(element.invalid).to.equal(true);
+            element.reset();
+            expect(element.invalid).to.equal(false);
+          });
+          it('should set dirty to false', () => {
+            element._setDirty(true);
+            expect(element.dirty).to.equal(true);
+            element.reset();
+            expect(element.dirty).to.equal(false);
+          });
+          it('should reset the form if one exists', () => {
+            element.form = {
+              reset: sinon.spy()
+            };
+            element.reset();
+            expect(element.form.reset).called;
+          });
+          it('should not reset the form is one does not exist', () => {
+            expect(element.form).to.equal(null);
+            expect(element.reset.bind(element)).to.not.throw();
+          });
+        });
+        describe('validate()', () => {
+          it('should return true when no form and !required', () => {
+            expect(element.validate()).to.equal(true);
+            expect(element.invalid).to.equal(false);
+          });
+          it('should return true when no form and required', () => {
+            element.required = true;
+            expect(element.validate()).to.equal(true);
+            expect(element.invalid).to.equal(false);
+          });
+
+          describe('when there is a form', () => {
+            beforeEach(() => {
+              element.form = {
+                validate: sinon.stub()
+              };
+            });
+
+            describe('and form.validate() succeeds', () => {
+              beforeEach(() => {
+                element.form.validate.returns(true);
+              });
+
+              it('should return true when required', () => {
+                element.required = true;
+                expect(element.validate()).to.equal(true);
+                expect(element.invalid).to.equal(false);
+              });
+              it('should return true when !required', () => {
+                expect(element.validate()).to.equal(true);
+                expect(element.invalid).to.equal(false);
+              });
+            });
+            describe('and form.validate() fails', () => {
+              beforeEach(() => {
+                element.form.validate.returns(false);
+              });
+
+              it('should return false when required', () => {
+                element.required = true;
+                expect(element.validate()).to.equal(false);
+                expect(element.invalid).to.equal(true);
+              });
+              it('should return true when !required', () => {
+                expect(element.validate()).to.equal(true);
+                expect(element.invalid).to.equal(false);
+              });
+            });
+          });
+        });
+        /* Private Methods */
+        describe('__updateDirty()', () => {
+          it('should set dirty to true', () => {
+            expect(element.dirty).to.equal(false);
+            element.__updateDirty();
+            expect(element.dirty).to.equal(true);
+          });
+        });
+        /* Interactions */
+        describe('__nodeObserver: when content changes', () => {
+          it('should attach the form to the step when matching on attribute', (done) => {
+            const form = document.createElement('form');
+            form.setAttribute('wizard-form', '');
+            element.appendChild(form);
+            flush(() => {
+              expect(element.form).to.equal(form);
+              done();
+            });
+          });
+          it('should attach the form to the step when matching on class', (done) => {
+            const form = document.createElement('form');
+            form.setAttribute('class', 'wizard-form');
+            element.appendChild(form);
+            flush(() => {
+              expect(element.form).to.equal(form);
+              done();
+            });
+          });
+          it('should not attach a form when one does not exist', (done) => {
+            const form = document.createElement('form');
+            element.appendChild(form);
+            flush(() => {
+              expect(element.form).to.equal(null);
+              done();
+            });
+          });
         });
       });
     </script>
