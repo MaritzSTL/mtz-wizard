@@ -17,6 +17,13 @@
         <mtz-wizard-step></mtz-wizard-step>
       </template>
     </test-fixture>
+    <test-fixture id="withForm">
+      <template>
+        <mtz-wizard-step>
+          <form wizard-form id="form"></form>
+        </mtz-wizard-step>
+      </template>
+    </test-fixture>
 
     <script>
       describe('mtz-wizard-step', () => {
@@ -42,11 +49,14 @@
           });
         });
         describe('attached()', () => {
-          it('should register an event listener for change', () => {
+          it('should register an event listener for change', (done) => {
             parent.removeChild(element);
             element.addEventListener = sinon.spy();
             parent.appendChild(element);
-            expect(element.addEventListener).calledWith('change', element.__updateDirty);
+            flush(() => {
+              expect(element.addEventListener).calledWith('change', element.__updateDirty);
+              done();
+            });
           });
           it('should create a nodeObserver', () => {
             expect(typeof element.__nodeObserver).to.equal('object');
@@ -55,9 +65,10 @@
         describe('detached()', () => {
           let spy;
 
-          beforeEach(() => {
+          beforeEach((done) => {
             spy = sinon.spy(element, 'removeEventListener');
             parent.removeChild(element);
+            flush(done);
           });
 
           it('should remove the change event listener', () => {
@@ -153,21 +164,10 @@
         });
         /* Interactions */
         describe('__nodeObserver: when content changes', () => {
-          it('should attach the form to the step when matching on attribute', (done) => {
-            const form = document.createElement('form');
-            form.setAttribute('wizard-form', '');
-            element.appendChild(form);
+          it('should attach the form to the step when matching on selector', (done) => {
+            element = fixture('withForm');
             flush(() => {
-              expect(element.form).to.equal(form);
-              done();
-            });
-          });
-          it('should attach the form to the step when matching on class', (done) => {
-            const form = document.createElement('form');
-            form.setAttribute('class', 'wizard-form');
-            element.appendChild(form);
-            flush(() => {
-              expect(element.form).to.equal(form);
+              expect(element.form.getAttribute('id')).to.equal('form');
               done();
             });
           });
