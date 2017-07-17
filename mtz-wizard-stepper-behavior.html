@@ -82,6 +82,7 @@
       this.__observers.forEach((observer) => {
         observer.disconnect();
       });
+      this.__observers = [];
 
       this._set__steps(steps.map((step, index) => {
         // Set the index and attach the new event listeners
@@ -91,11 +92,11 @@
           attributes: true,
           attributeFilter: ['dirty', 'invalid', this.selectedAttribute]
         });
-        this.push('__observers', observer);
+        this.__observers.push(observer);
 
         // Return the object we want to use to generate the steps.
         const data = {
-          key: this.__serializeElementProperty(step, this.attrForSelected, String) || '',
+          key: this.__serializeElementProperty(step, this.attrForSelected, String),
           label: this.__serializeElementProperty(step, 'label', String) || '',
           dirty: this.__serializeElementProperty(step, 'dirty', Boolean),
           invalid: this.__serializeElementProperty(step, 'invalid', Boolean),
@@ -118,7 +119,7 @@
       let value = element[property] || element.getAttribute(property);
       if (type === Boolean) value = value !== null;
 
-      return type ? type(value) : value;
+      return value === null ? null : (type ? type(value) : value);
     },
     /**
      * The function to bind to the event listener for a property changing in the steps array.
@@ -127,15 +128,13 @@
      * @param {MutationRecord[]} records
      */
     __updateStepProperties(records) {
-      records.
-        filter((record) => {
-          return record.type === 'attributes';
-        }).
-        forEach((record) => {
+      records.forEach((record) => {
+        if (record.type === 'attributes') {
           const index = record.target.stepIndex;
           this.set(`__steps.${index}.${record.attributeName}`,
             this.__serializeElementProperty(record.target, record.attributeName, Boolean));
-        });
+        }
+      });
     }
   };
 </script>

@@ -10,11 +10,12 @@
     <script src="../../web-component-tester/browser.js"></script>
 
     <link rel="import" href="../mtz-wizard-stepper.html">
+    <link rel="import" href="../mtz-wizard.html">
   </head>
   <body>
     <test-fixture id="basic">
       <template>
-        <mtz-wizard-stepper></mtz-wizard-stepper>
+        <mtz-wizard-stepper step="{{steps}}"></mtz-wizard-stepper>
       </template>
     </test-fixture>
 
@@ -22,12 +23,220 @@
       describe('mtz-wizard-stepper', () => {
         let element;
 
-        beforeEach(() => {
+        beforeEach((done) => {
           element = fixture('basic');
+          flush(done);
         });
 
-        it('should instantiate the element', () => {
-          expect(element.is).to.equal('mtz-wizard-stepper');
+        /* Lifecycle Methods */
+        describe('ready()', () => {
+          it('should create a bound function for __updateStepProperties', () => {
+            const spy = sinon.spy(element.__updateStepProperties, 'bind');
+            element[`${Polymer.Element ? '' : '_'}ready`]();
+            expect(spy).calledWith(element);
+          });
+        });
+        /* Public Methods */
+        describe('localize(key)', () => {
+          // TODO: test this @stramel
+          it('should return the key if there is no translation', () => {
+            expect(element.localize('foo')).to.equal('foo');
+          });
+        });
+        describe('selectStep(event)', () => {
+          const event = {
+            model: {
+              index: 1
+            }
+          };
+
+          beforeEach(() => {
+            element._set__steps([
+              {
+                key: 'step1'
+              },
+              {
+                key: 'step2'
+              },
+              {
+                key: 'step3'
+              },
+            ]);
+          });
+
+          it('should set selected to the key on __steps at the index in the event', () => {
+            element.selectStep(event);
+            expect(element.selected).to.equal('step2');
+          });
+        });
+        /* Private Methods */
+        describe('__generateSteps(steps)', () => {
+          let steps;
+
+          beforeEach(() => {
+            steps = [
+              document.createElement('div'),
+              document.createElement('div'),
+            ];
+            element.__updateStepProperties = sinon.spy();
+
+            // step1
+            steps[0].name = 'step1';
+            steps[0].label = 'step1';
+            steps[0].dirty = false;
+            steps[0].invalid = false;
+            steps[0].active = true;
+            // step2
+            steps[1].name = 'step2';
+            steps[1].dirty = false;
+            steps[1].invalid = false;
+            steps[1].active = false;
+          });
+
+          it('should disconnect all pre-existing observers', () => {
+            const spy = sinon.spy();
+            element.__observers = [
+              {
+                disconnect: spy
+              }
+            ];
+            element.__generateSteps(steps);
+            expect(spy).called;
+          });
+          it('should add an observer for each step', (done) => {
+            element.__generateSteps(steps);
+            steps[0].setAttribute('dirty', '');
+            flush(() => {
+              expect(element.__updateStepProperties).called;
+              done();
+            });
+          });
+          it('should set __steps based on the steps', () => {
+            element.__generateSteps(steps);
+            expect(element.__steps).to.deep.equal([
+              {
+                key: 'step1',
+                label: 'step1',
+                dirty: false,
+                invalid: false,
+                active: true
+              },
+              {
+                key: 'step2',
+                label: '',
+                dirty: false,
+                invalid: false,
+                active: false
+              },
+            ]);
+          });
+        });
+        describe('__serializeElementProperty(element, property, type)', () => {
+          let el;
+
+          beforeEach(() => {
+            el = document.createElement('div');
+          });
+
+          describe('when type is Boolean', () => {
+            it('should return true when element[property] = true', () => {
+              el.foo = true;
+              expect(element.__serializeElementProperty(el, 'foo', Boolean)).
+                to.be.true;
+            });
+            it('should return true when element property is an attribute', () => {
+              el.setAttribute('foo', '');
+              expect(element.__serializeElementProperty(el, 'foo', Boolean)).
+                to.be.true;
+            });
+            it('should return false when element[property] = false', () => {
+              el.foo = false;
+              expect(element.__serializeElementProperty(el, 'foo', Boolean)).
+                to.be.false;
+            });
+            it('should return false when the property is not an attribute on element', () => {
+              expect(element.__serializeElementProperty(el, 'foo', Boolean)).
+                to.be.false;
+            });
+          });
+          describe('when type is not Boolean', () => {
+            it('should cast type from element[property]', () => {
+              el.foo = 1;
+              el.bar = 'bar';
+              expect(element.__serializeElementProperty(el, 'foo', Number)).
+                to.equal(1);
+              expect(element.__serializeElementProperty(el, 'bar', String)).
+                to.equal('bar');
+            });
+            it('should case type from element with property as an attribute', () => {
+              el.setAttribute('foo', '1');
+              el.setAttribute('bar', 'bar');
+              expect(element.__serializeElementProperty(el, 'foo', Number)).
+                to.equal(1);
+              expect(element.__serializeElementProperty(el, 'bar', String)).
+                to.equal('bar');
+            });
+          });
+          describe('when value is null', () => {
+            it('should convert boolean to false', () => {
+              expect(element.__serializeElementProperty(el, 'foo', Boolean)).
+                to.be.false;
+            });
+            it('should return null for String', () => {
+              expect(element.__serializeElementProperty(el, 'foo', String)).
+                to.be.null;
+            });
+            it('should return null for Number', () => {
+              expect(element.__serializeElementProperty(el, 'foo', Number)).
+                to.be.null;
+            });
+          });
+        });
+        describe('__updateStepProperties(records)', () => {
+          const records = [
+            {
+              type: 'attributes',
+              attributeName: 'foo',
+              target: {
+                stepIndex: 0
+              }
+            },
+            {
+              type: 'attributes',
+              attributeName: 'bar',
+              target: {
+                stepIndex: 1
+              }
+            },
+            {
+              type: 'test',
+              attributeName: 'test',
+              target: {
+                stepIndex: 2
+              }
+            },
+          ];
+
+          beforeEach(() => {
+            element.__serializeElementProperty = sinon.spy();
+            const steps = [];
+            records.forEach(() => {
+              steps.push({});
+            });
+            element._set__steps(steps);
+            element.__updateStepProperties(records);
+          });
+
+          it('should call __serializeElementProperty for each attribute change', () => {
+            expect(element.__serializeElementProperty).
+              calledWithMatch(records[0].target, records[0].attributeName, Boolean);
+            expect(element.__serializeElementProperty).
+              calledWithMatch(records[1].target, records[1].attributeName, Boolean);
+          });
+          it('should not call __serializeElementProperty for non attribute changes', () => {
+            expect(element.__serializeElementProperty).not.to.be.
+              calledWithMatch(records[2].target, records[2].attributeName, Boolean);
+          });
         });
       });
     </script>

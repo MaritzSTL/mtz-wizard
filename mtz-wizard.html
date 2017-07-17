@@ -117,7 +117,7 @@ methods for navigation and `wizard-form` interactions, is responsible for render
        */
       reset(steps = this.steps) {
         (steps || []).forEach((step) => {
-          step.reset();
+          if (step.reset) step.reset();
         });
       },
       /**

@@ -14,6 +14,15 @@
   <body>
     <test-fixture id="basic">
       <template>
+        <mtz-wizard>
+          <div wizard-step name="step1"></div>
+          <div wizard-step name="step2"></div>
+          <div wizard-step name="step3"></div>
+        </mtz-wizard>
+      </template>
+    </test-fixture>
+    <test-fixture id="noSteps">
+      <template>
         <mtz-wizard></mtz-wizard>
       </template>
     </test-fixture>
@@ -26,8 +35,243 @@
           element = fixture('basic');
         });
 
-        it('should instantiate the element', () => {
-          expect(element.is).to.equal('mtz-wizard');
+        /* Public Methods */
+        describe('getFormdata(steps, attr)', () => {
+          let spy, steps;
+          beforeEach(() => {
+            spy = sinon.spy();
+            steps = [
+              {
+                getAttribute(attr) {
+                  spy(attr);
+                  return 'step1';
+                },
+                form: {
+                  serializeForm() {
+                    return {step1: true};
+                  }
+                },
+                dirty: true
+              },
+              {
+                getAttribute() {
+                  return 'step2';
+                },
+                form: {
+                  serializeForm() {
+                    return {step2: false};
+                  }
+                },
+                dirty: false
+              },
+              {
+                getAttribute() {
+                  return 'step3';
+                },
+              },
+            ];
+          });
+
+          describe('with steps that have a form', () => {
+            it('should create a map of name to form data when dirty', () => {
+              expect(element.getFormData(steps, 'test')).to.deep.equal({
+                step1: {step1: true}
+              });
+              expect(spy).calledWith('test');
+            });
+            it('should not add the form data to the map if the form is not dirty', () => {
+              expect(element.getFormData(steps).step2).
+                to.equal(undefined);
+            });
+          });
+          describe('with steps that do not have a form', () => {
+            it('should not exist in the map', () => {
+              expect(element.getFormData(steps).step3).
+                to.equal(undefined);
+            });
+          });
+        });
+        describe('next()', () => {
+          beforeEach((done) => {
+            element.active = true;
+            flush(done);
+          });
+
+          it('should call selector.selectNext()', () => {
+            const selector = element.$.selector;
+            selector.selectNext = sinon.spy();
+            element.next();
+            expect(selector.selectNext).called;
+          });
+          it('should return selectedItem', (done) => {
+            const prevItem = Object.assign({}, element.selectedItem);
+            const response = element.next();
+
+            flush(() => {
+              expect(response).to.deep.equal(element.selectedItem);
+              expect(prevItem).to.not.deep.equal(element.selectedItem);
+              expect(element.selectedItem).to.be.ok;
+              done();
+            });
+          });
+        });
+        describe('previous()', () => {
+          beforeEach((done) => {
+            element.active = true;
+            flush(done);
+          });
+
+          it('should call selector.selectPrevious()', () => {
+            const selector = element.$.selector;
+            selector.selectPrevious = sinon.spy();
+            element.previous();
+            expect(selector.selectPrevious).called;
+          });
+          it('should return selectedItem', (done) => {
+            const prevItem = Object.assign({}, element.selectedItem);
+            const response = element.previous();
+
+            flush(() => {
+              expect(response).to.deep.equal(element.selectedItem);
+              expect(prevItem).to.not.deep.equal(element.selectedItem);
+              expect(element.selectedItem).to.be.ok;
+              done();
+            });
+          });
+        });
+        describe('reset(steps)', () => {
+          let steps;
+
+          beforeEach(() => {
+            steps = [
+              {
+                reset: sinon.spy()
+              },
+              {}
+            ];
+          });
+
+          it('should call reset on each step, if it has the function', () => {
+            expect(element.reset.bind(element, steps)).not.to.throw();
+            expect(steps[0].reset).called;
+          });
+        });
+        describe('select(key)', () => {
+          beforeEach((done) => {
+            element.active = true;
+            flush(done);
+          });
+
+          it('should call selector.select()', () => {
+            const selector = element.$.selector;
+            selector.select = sinon.spy();
+            element.select('step1');
+            expect(selector.select).calledWith('step1');
+          });
+          it('should return selectedItem', (done) => {
+            const prevItem = Object.assign({}, element.selectedItem);
+            const response = element.select('step2');
+
+            flush(() => {
+              expect(response).to.deep.equal(element.selectedItem);
+              expect(prevItem).to.not.deep.equal(element.selectedItem);
+              expect(element.selectedItem).to.be.ok;
+              expect(element.selectedItem.getAttribute('name')).to.equal('step2');
+              done();
+            });
+          });
+        });
+        describe('selectIndex(index)', () => {
+          beforeEach((done) => {
+            element.active = true;
+            flush(done);
+          });
+
+          it('should call selector.selectIndex()', () => {
+            const selector = element.$.selector;
+            selector.selectIndex = sinon.spy();
+            element.selectIndex(1);
+            expect(selector.selectIndex).calledWith(1);
+          });
+          it('should return selectedItem', (done) => {
+            const prevItem = Object.assign({}, element.selectedItem);
+            const response = element.selectIndex(1);
+
+            flush(() => {
+              expect(response).to.deep.equal(element.selectedItem);
+              expect(prevItem).to.not.deep.equal(element.selectedItem);
+              expect(element.selectedItem).to.be.ok;
+              expect(element.selectedItem.getAttribute('name')).to.equal('step2');
+              done();
+            });
+          });
+        });
+        describe('validate(steps)', () => {
+          let steps;
+
+          describe('with validatable steps', () => {
+            beforeEach(() => {
+              steps = [
+                {
+                  validate() {
+                    return true;
+                  }
+                },
+                {
+                  validate() {
+                    return false;
+                  }
+                },
+                {},
+              ];
+            });
+
+            it('should return false if any step fails validation', () => {
+              expect(element.validate(steps)).to.equal(false);
+            });
+            it('should return true if all steps pass validation', () => {
+              steps[1].validate = () => true;
+              expect(element.validate(steps)).to.equal(true);
+            });
+          });
+          describe('without validatable steps', () => {
+            beforeEach(() => {
+              steps = [
+                {},
+                {},
+              ];
+            });
+
+            it('should return true', () => {
+              expect(element.validate(steps)).to.equal(true);
+            });
+          });
+        });
+        /* Private Methods */
+        describe('__computeFallbackSelection(steps, attr)', () => {
+          describe('when there are steps', () => {
+            beforeEach((done) => {
+              element.active = true;
+              flush(done);
+            });
+
+            it('should return steps[0][attrForSelected]', () => {
+              expect(element.__computeFallbackSelection(element.steps, 'name')).
+                to.equal('step1');
+            });
+          });
+          describe('when there are no steps', () => {
+            beforeEach((done) => {
+              element = fixture('noSteps');
+              element.active = true;
+              flush(done);
+            });
+
+            it('should return an empty string', () => {
+              expect(element.__computeFallbackSelection(element.steps, 'name')).
+                to.equal('');
+            });
+          });
         });
       });
     </script>
