@@ -19,8 +19,14 @@
     </test-fixture>
     <test-fixture id="withForm">
       <template>
-        <mtz-wizard-step>
-          <form wizard-form id="form"></form>
+        <mtz-wizard-step name="step">
+          <form wizard-form id="form">
+            <paper-input
+              id="input"
+              name="input"
+              key="key-input"
+            ></paper-input>
+          </form>
         </mtz-wizard-step>
       </template>
     </test-fixture>
@@ -44,6 +50,11 @@
         describe('ready()', () => {
           it('should register __updateDirty as a bound function', () => {
             const spy = sinon.spy(element.__updateDirty, 'bind');
+            element[`${Polymer.Element ? '' : '_'}ready`]();
+            expect(spy).calledWith(element);
+          });
+          it('should register __revertErrorMessage as a bound function', () => {
+            const spy = sinon.spy(element.__revertErrorMessage, 'bind');
             element[`${Polymer.Element ? '' : '_'}ready`]();
             expect(spy).calledWith(element);
           });
@@ -155,6 +166,105 @@
           });
         });
         /* Private Methods */
+        describe('__revertErrorMessage(event)', () => {
+          let input;
+
+          beforeEach((done) => {
+            element = fixture('withForm');
+            flush(() => {
+              input = element.form.querySelector('#input');
+              input.addEventListener('invalid-changed', element.__revertErrorMessage);
+              done();
+            });
+          });
+
+          it('should remove itself from listening on the field', (done) => {
+            const spy = sinon.spy(input, 'removeEventListener');
+            input.dispatchEvent(new CustomEvent('invalid-changed'));
+            flush(() => {
+              expect(spy).calledWith('invalid-changed', element.__revertErrorMessage);
+              done();
+            });
+          });
+          it('should revert back to the original error-message when there is an original', (done) => {
+            input.originalErrorMessage = 'test';
+            input.dispatchEvent(new CustomEvent('invalid-changed'));
+            flush(() => {
+              expect(input.errorMessage).to.equal('test');
+              expect(input.getAttribute('error-message')).to.equal('test');
+              expect(input.originalErrorMessage).to.be.undefined;
+              done();
+            });
+          });
+          it('should remove error-message attribute when there is no original error message', (done) => {
+            input.errorMessage = 'test';
+            input.setAttribute('error-message', 'test');
+            input.dispatchEvent(new CustomEvent('invalid-changed'));
+            flush(() => {
+              expect(input.errorMessage).to.be.undefined;
+              expect(input.getAttribute('error-message')).to.be.null;
+              done();
+            });
+          });
+        });
+        describe('__setErrorState(errors, messageAttr, invalidAttr, keyAttr)', () => {
+          const badFieldError = {
+              step: 'step',
+              field: 'bad-field',
+              message: 'never show'
+            },
+            goodFieldError = {
+              step: 'step',
+              field: 'key-input',
+              message: 'error message'
+            },
+            otherStepError = {
+              step: 'step2',
+              field: 'input',
+              message: 'wrong step'
+            };
+          let input, spy;
+
+          beforeEach((done) => {
+            element = fixture('withForm');
+            element.errorMessageAttribute = 'foo';
+            element.invalidAttribute = 'bar';
+            element.keyAttribute = 'key';
+            // element.
+            flush(() => {
+              input = element.form.querySelector('#input');
+              spy = sinon.spy(input, 'addEventListener');
+              done();
+            });
+          });
+
+          it('should do nothing when there are no errors', () => {
+            expect(element.__setErrorState.bind(element, null)).to.not.throw();
+            expect(spy).not.to.be.called;
+          });
+          it('should ignore errors for bad steps and fields', () => {
+            expect(element.__setErrorState.bind(element, [otherStepError, badFieldError])).
+              not.to.throw();
+            expect(spy).not.to.be.called;
+          });
+          it('should set originalErrorMessage for fields with an error-message', () => {
+            input[element.errorMessageAttribute] = 'test error';
+            element.__setErrorState([goodFieldError]);
+            expect(input.originalErrorMessage).to.equal('test error');
+          });
+          it('should update field[messageAttr] to the new error message', () => {
+            element.__setErrorState([goodFieldError]);
+            expect(input[element.errorMessageAttribute]).to.equal(goodFieldError.message);
+          });
+          it('should set field[invalidAttr] to true', () => {
+            element.__setErrorState([goodFieldError]);
+            expect(input[element.invalidAttribute]).to.be.true;
+          });
+          it('should bind an event listener for invalid-changed', () => {
+            element.__setErrorState([goodFieldError]);
+            expect(spy).calledWith('invalid-changed', element.__revertErrorMessage);
+          });
+        });
         describe('__updateDirty()', () => {
           it('should set dirty to true', () => {
             expect(element.dirty).to.equal(false);

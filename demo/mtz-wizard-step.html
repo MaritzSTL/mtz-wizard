@@ -11,6 +11,7 @@
     <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
     <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
     <link rel="import" href="../../iron-form/iron-form.html">
+    <link rel="import" href="../../paper-input/paper-input.html">
     <link rel="import" href="../mtz-wizard-step.html">
 
     <style is="custom-style" include="demo-pages-shared-styles">
@@ -56,17 +57,29 @@
               <button on-tap="serialize">Serialize</button>
               <span>Form is Dirty: [[dirty]]</span>
               <span>Form is Invalid: [[invalid]]</span>
-              <mtz-wizard-step active id="step" required dirty="{{dirty}}" invalid="{{invalid}}">
+              <mtz-wizard-step
+                active
+                id="step"
+                name="step1"
+                required
+                dirty="{{dirty}}"
+                invalid="{{invalid}}"
+                errors="{{errors}}">
                 <iron-form wizard-form>
                   <form is="iron-form">
-                    <label>
-                      First Name
-                      <input required name="firstName" value="John"/>
-                    </label>
-                    <label>
-                      Last Name
-                      <input name="lastName" value="Doe"/>
-                    </label>
+                    <paper-input
+                      required
+                      name="firstName"
+                      value="John"
+                      label="First Name"
+                      auto-validate
+                      error-message="required!!!"
+                    ></paper-input>
+                    <paper-input
+                      name="lastName"
+                      value="Doe"
+                      label="Last Name"
+                    ></paper-input>
                   </form>
                 </iron-form>
               </mtz-wizard-step>
@@ -75,11 +88,24 @@
               window.addEventListener('WebComponentsReady', () => {
                 Polymer({
                   is: 'demo-el-form',
+                  properties: {
+                    errors: Array
+                  },
                   reset() {
                     this.$.step.reset();
                   },
                   validate() {
                     console.log(this.$.step.validate());
+
+                    // Manually validating to create an errors object (simulating server-side errors)
+                    const firstName = this.$.step.querySelector('[name="firstName"]');
+                    if (!firstName.value) {
+                      this.set('errors', [{
+                        step: 'step1',
+                        field: 'firstName',
+                        message: 'First Name is required'
+                      }]);
+                    }
                   },
                   serialize() {
                     console.log(this.$.step.form.serializeForm());
