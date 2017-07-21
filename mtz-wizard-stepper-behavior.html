@@ -1,0 +1,142 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<script>
+  window.mtz = window.mtz || {};
+
+  /**
+   * `mtz.WizardStepperBehavior`
+   * Integrates with `mtz-wizard` for building out a visualization of the steps then allowing the user to navigate the
+   *  steps.
+   *
+   * @polymerBehavior mtz.WizardStepperBehavior
+   * @demo demo/index.html
+   */
+  mtz.WizardStepperBehavior = {
+    properties: {
+      /* The attribute to use to match the selected key against, needs to match up with mtz-wizard */
+      attrForSelected: {
+        type: String,
+        value: 'name'
+      },
+      /* The attribute to set on elements when selected */
+      selectedAttribute: {
+        type: String,
+        value: 'active'
+      },
+      /* The array of steps to use when generating the stepper. */
+      steps: {
+        type: Array,
+        observer: '__generateSteps'
+      },
+      /* The currently selected step, updated when the user performs a click action on a step. */
+      selected: {
+        type: String,
+        notify: true
+      },
+      /**
+       * Generated from the steps property and used to create the stepper’s visualization.
+       * @type {Array<{key: String, label: String, invalid: Boolean, active: Boolean}>}
+       */
+      __steps: {
+        type: Array,
+        readOnly: true
+      },
+      /* Used to track the mutation observers */
+      __observers: {
+        type: Array,
+        value() {
+          return [];
+        }
+      }
+    },
+    /**
+     * Creates bound functions for using with event listeners.
+     */
+    ready() {
+      this.__updateStepProperties = this.__updateStepProperties.bind(this);
+    },
+    /**
+     * Takes an i18n key and returns the translation, if no translation is available then it returns the key.
+     *
+     * @param {String} key
+     * @return {String}
+     */
+    localize(key) {
+      // TODO: add the localize behavior that Polymer provides
+      return key;
+    },
+    /**
+     * Moves to the step that was clicked on by updating the selected property with the step’s key.
+     *
+     * @param {ClickEvent} event
+     */
+    selectStep({model: {index}}) {
+      this.selected = this.__steps[index].key;
+    },
+    /**
+     * Takes in the array of HTMLElement steps from wizard and creates an Object array to use for generating the stepper
+     *  visualization.  Used as a computed function on __steps.
+     * @private
+     *
+     * @param {HTMLElement[]} steps - the steps to generate based on
+     */
+    __generateSteps(steps) {
+      this.__observers.forEach((observer) => {
+        observer.disconnect();
+      });
+      this.__observers = [];
+
+      this._set__steps(steps.map((step, index) => {
+        // Set the index and attach the new event listeners
+        step.stepIndex = index;
+        const observer = new MutationObserver(this.__updateStepProperties);
+        observer.observe(step, {
+          attributes: true,
+          attributeFilter: ['dirty', 'invalid', this.selectedAttribute]
+        });
+        this.__observers.push(observer);
+
+        // Return the object we want to use to generate the steps.
+        const data = {
+          key: this.__serializeElementProperty(step, this.attrForSelected, String),
+          label: this.__serializeElementProperty(step, 'label', String) || '',
+          dirty: this.__serializeElementProperty(step, 'dirty', Boolean),
+          invalid: this.__serializeElementProperty(step, 'invalid', Boolean),
+          active: this.__serializeElementProperty(step, this.selectedAttribute, Boolean)
+        };
+        return data;
+      }));
+    },
+    /**
+     * Fetches the value and serializes it based on type.
+     * @private
+     *
+     * @param {HTMLElement} element
+     * @param {String} property
+     * @param {Function} type - the JS primitive type
+     * @return {Object} - the value once it's been retrieved and serialized from the element, if there is no type then
+     *  it returns the raw value
+     */
+    __serializeElementProperty(element, property, type) {
+      let value = element[property] || element.getAttribute(property);
+      if (type === Boolean) value = value !== null;
+
+      return value === null ? null : (type ? type(value) : value);
+    },
+    /**
+     * The function to bind to the event listener for a property changing in the steps array.
+     * @private
+     *
+     * @param {MutationRecord[]} records
+     */
+    __updateStepProperties(records) {
+      records.forEach((record) => {
+        if (record.type === 'attributes') {
+          const index = record.target.stepIndex;
+          this.set(`__steps.${index}.${record.attributeName}`,
+            this.__serializeElementProperty(record.target, record.attributeName, Boolean));
+        }
+      });
+    }
+  };
+</script>

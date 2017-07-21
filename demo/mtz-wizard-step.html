@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>mtz-wizard-step demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../../iron-form/iron-form.html">
+    <link rel="import" href="../../paper-input/paper-input.html">
+    <link rel="import" href="../mtz-wizard-step.html">
+
+    <style is="custom-style" include="demo-pages-shared-styles">
+    </style>
+  </head>
+  <body>
+    <div class="vertical-section-container centered">
+      <h3>Basic mtz-wizard-step demo</h3>
+      <demo-snippet>
+        <template>
+          <demo-el></demo-el>
+          <dom-module id="demo-el">
+            <template>
+              <button on-tap="toggleActiveStatus">Toggle Active</button>
+              <mtz-wizard-step active$="[[active]]">
+                Show some content!!
+              </mtz-wizard-step>
+            </template>
+            <script>
+              window.addEventListener('WebComponentsReady', () => {
+                Polymer({
+                  is: 'demo-el',
+                  toggleActiveStatus() {
+                    this.active = !this.active;
+                    console.log('active', this.active);
+                  }
+                });
+              });
+            </script>
+          </dom-module>
+        </template>
+      </demo-snippet>
+    </div>
+    <div class="vertical-section-container centered">
+      <h3>Basic mtz-wizard-step demo</h3>
+      <demo-snippet>
+        <template>
+          <demo-el-form></demo-el-form>
+          <dom-module id="demo-el-form">
+            <template>
+              <button on-tap="reset">Reset</button>
+              <button on-tap="validate">Validate</button>
+              <button on-tap="serialize">Serialize</button>
+              <span>Form is Dirty: [[dirty]]</span>
+              <span>Form is Invalid: [[invalid]]</span>
+              <mtz-wizard-step
+                active
+                id="step"
+                name="step1"
+                required
+                dirty="{{dirty}}"
+                invalid="{{invalid}}"
+                errors="{{errors}}">
+                <iron-form wizard-form>
+                  <form is="iron-form">
+                    <paper-input
+                      required
+                      name="firstName"
+                      value="John"
+                      label="First Name"
+                      auto-validate
+                      error-message="required!!!"
+                    ></paper-input>
+                    <paper-input
+                      name="lastName"
+                      value="Doe"
+                      label="Last Name"
+                    ></paper-input>
+                  </form>
+                </iron-form>
+              </mtz-wizard-step>
+            </template>
+            <script>
+              window.addEventListener('WebComponentsReady', () => {
+                Polymer({
+                  is: 'demo-el-form',
+                  properties: {
+                    errors: Array
+                  },
+                  reset() {
+                    this.$.step.reset();
+                  },
+                  validate() {
+                    console.log(this.$.step.validate());
+
+                    // Manually validating to create an errors object (simulating server-side errors)
+                    const firstName = this.$.step.querySelector('[name="firstName"]');
+                    if (!firstName.value) {
+                      this.set('errors', [{
+                        step: 'step1',
+                        field: 'firstName',
+                        message: 'First Name is required'
+                      }]);
+                    }
+                  },
+                  serialize() {
+                    console.log(this.$.step.form.serializeForm());
+                  }
+                });
+              });
+            </script>
+          </dom-module>
+        </template>
+      </demo-snippet>
+    </div>
+  </body>
+</html>

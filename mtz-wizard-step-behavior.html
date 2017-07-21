@@ -1,0 +1,124 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<script>
+  window.mtz = window.mtz || {};
+
+  /**
+   * `mtz.WizardStepBehavior`
+   * Works with wizard to register and build out the steps array so stepper can accurately report on the available
+   *  steps, also contains meta-data needed by stepper to display the steps for navigation.
+   *
+   * @polymerBehavior mtz.WizardStepBehavior
+   * @demo demo/mtz-wizard-step.html
+   */
+  mtz.WizardStepBehavior = {
+    hostAttributes: {
+      'wizard-step': true
+    },
+    properties: {
+      /* Used to stamp the content for the first time, supports a single lazy-load/API call per wizard instance */
+      active: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true,
+        notify: true
+      },
+      /* Used to track the dirty state of the form, if there is one */
+      dirty: {
+        type: Boolean,
+        value: false,
+        readOnly: true,
+        reflectToAttribute: true,
+        notify: true
+      },
+      /* The form associated with this step, or null if one isn't found */
+      form: {
+        type: Object,
+        notify: true,
+        value: null
+      },
+      /* The query selector to base the form selection off of */
+      formSelector: {
+        type: String,
+        value: '[wizard-form],.wizard-form'
+      },
+      /* The validity state of the element */
+      invalid: {
+        type: Boolean,
+        readOnly: true,
+        reflectToAttribute: true,
+        notify: true,
+        value: false
+      },
+      /* Used by the stepper to give a pretty name */
+      label: String,
+      /* Used to map the UI and API together for validation and data interfacing */
+      name: {
+        type: String,
+        reflectToAttribute: true
+      },
+      /* Whether or not the step is required */
+      required: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true
+      },
+      /* The nodeObserver for tracking forms being added */
+      __nodeObserver: Object
+    },
+    /**
+     * Replaces methods with bound methods for ease of use in event listeners.
+     */
+    ready() {
+      this.__updateDirty = this.__updateDirty.bind(this);
+    },
+    /**
+     * Binds the event listeners and node observers.
+     */
+    attached() {
+      this.addEventListener('change', this.__updateDirty);
+
+      this.__nodeObserver = Polymer.dom(this).observeNodes(() => {
+        this.set('form', Polymer.dom(this).queryDistributedElements(this.formSelector)[0] || null);
+      });
+    },
+    /**
+     * Cleans up the event listeners and node observers.
+     */
+    detached() {
+      this.removeEventListener('change', this.__updateDirty);
+
+      if (this.__nodeObserver) {
+        Polymer.dom(this).unobserveNodes(this.__nodeObserver);
+        this.__nodeObserver = null;
+      }
+    },
+    /**
+     * Reverts the form back to initial state if one exists, clears validity and dirty states.
+     */
+    reset() {
+      if (this.form) this.form.reset();
+      this._setInvalid(false);
+      this._setDirty(false);
+    },
+    /**
+     * Validates all the required elements (custom and native) in the form, if one exists, and checks step validity.
+     *
+     * @return {Boolean}
+     */
+    validate() {
+      const validForm = (this.form && this.form.validate()) || !this.form;
+      const valid = (this.required && validForm) || !this.required;
+      this._setInvalid(!valid);
+      return valid;
+    },
+    /**
+     * Sets the dirty state to true.
+     * @listens change
+     * @private
+     */
+    __updateDirty() {
+      this._setDirty(true);
+    }
+  };
+</script>

@@ -1,10 +1,8 @@
 # \<mtz-wizard\>
 
-
-
 ## Install the Polymer-CLI
 
-First, make sure you have the [Polymer CLI](https://www.npmjs.com/package/polymer-cli) installed. Then run `polymer serve` to serve your element locally.
+First, make sure you have the [Polymer CLI](https://www.npmjs.com/package/polymer-cli) installed. Then run `polymer install --variants` to install all dependencies for both 1.x and 2.x (mainline)
 
 ## Viewing Your Element
 

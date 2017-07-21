@@ -1,0 +1,43 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="mtz-wizard-stepper-behavior.html">
+
+<!--
+`mtz-wizard-stepper`
+A basic implementation of the `mtz.WizardStepperBehavior` for navigating an `mtz-wizard` element.
+
+@demo demo/index.html
+-->
+<dom-module id="mtz-wizard-stepper">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+
+    <template is="dom-repeat" items="[[__steps]]">
+      <div on-tap="selectStep">
+        <div>
+          key: [[item.key]]
+        </div>
+        <div>
+          active: [[item.active]]
+        </div>
+        <div>
+          invalid: [[item.invalid]]
+        </div>
+        <div>
+          dirty: [[item.dirty]]
+        </div>
+      </div>
+      <br />
+    </template>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'mtz-wizard-stepper',
+      behaviors: [mtz.WizardStepperBehavior]
+    });
+  </script>
+</dom-module>

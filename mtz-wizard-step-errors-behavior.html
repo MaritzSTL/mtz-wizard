@@ -1,0 +1,97 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="mtz-wizard-step-behavior.html">
+
+<script>
+  window.mtz = window.mtz || {};
+
+  /**
+   * `mtz.WizardStepErrorsBehavior`
+   * Extends the mtz.WizardStepBehavior to allow setting an errors array that will perform a lookup for the form
+   *  elements associated with each error then set their error message and state.
+   *
+   * @polymerBehavior mtz.WizardStepErrorsBehavior
+   * @demo demo/mtz-wizard-step.html
+   */
+  mtz.WizardStepErrorsBehavior = [mtz.WizardStepBehavior, {
+    properties: {
+      /* The attribute to assign the error-message to */
+      errorMessageAttribute: {
+        type: String,
+        value: 'error-message'
+      },
+      /**
+       * The list of all errors to associate with the form
+       * @type {Object.<{step: String, field: String, code: String, message: String}>}
+       */
+      errors: Array,
+      /* The attribute to set to true when an element is in error state */
+      invalidAttribute: {
+        type: String,
+        value: 'invalid'
+      },
+      /*  The attribute to key off of when doing the lookup for fields within the form */
+      keyAttribute: {
+        type: String,
+        value: 'name'
+      }
+    },
+    observers: [
+      '__setErrorState(errors)'
+    ],
+    /**
+     * Sets up bound functions for event bindings.
+     */
+    ready() {
+      this.__revertErrorMessage = this.__revertErrorMessage.bind(this);
+    },
+    /**
+     * Reverts the error message back to it's original state in order to preserve UI error messages.
+     * @private
+     *
+     * @param {CustomEvent} event
+     */
+    __revertErrorMessage(event) {
+      const field = Polymer.dom(event).rootTarget;
+      const originalMessage = field.originalErrorMessage;
+      // Remove the event listener
+      field.removeEventListener('invalid-changed', this.__revertErrorMessage);
+
+      field.errorMessage = originalMessage;
+      // Required to get the UI to update properly
+      if (originalMessage) field.setAttribute('error-message', originalMessage);
+      else field.removeAttribute('error-message');
+      delete field.originalErrorMessage;
+    },
+    /**
+     * Looks up each element based on the keyAttr for the associated error then sets the error message based on
+     *  messageAttr and toggles on the invalidAttr flag.
+     * @private
+     *
+     * @param {Object[]} errors
+     * @param {String} [messageAttr = this.errorMessageAttribute] - the attribute to set the message on
+     * @param {String} [invalidAttr = this.invalidAttribute] - the attribute to toggle for invalid state
+     * @param {String} [keyAttr = this.keyAttribute] - the attribute to lookup on
+     */
+    __setErrorState(errors, messageAttr = this.errorMessageAttribute, invalidAttr = this.invalidAttribute,
+                    keyAttr = this.keyAttribute) {
+      if (!errors) return;
+
+      errors.forEach((error) => {
+        // Errors should be filtered just to this step, however we want to sanity check them
+        if (error.step === this.name) {
+          const field = this.form.querySelector(`[${keyAttr}="${error.field}"]`);
+          if (!field) return;
+
+          field.originalErrorMessage = field[messageAttr];
+          field[messageAttr] = error.message;
+          // Required to get the UI to update properly
+          field.setAttribute(messageAttr, error.message);
+          field[invalidAttr] = true;
+
+          field.addEventListener('invalid-changed', this.__revertErrorMessage);
+        }
+      });
+      this.set('errors', null);
+    }
+  }];
+</script>

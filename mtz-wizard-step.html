@@ -1,0 +1,23 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="mtz-wizard-step-errors-behavior.html">
+
+<!--
+`mtz-wizard-step`
+A basic implementation of the `mtz.WizardStepBehavior` into a pass-through element for ease of use.
+
+@demo demo/mtz-wizard-step.html
+-->
+<dom-module id="mtz-wizard-step">
+  <template>
+    <template is="dom-if" if="[[active]]">
+      <slot></slot>
+    </template>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'mtz-wizard-step',
+      behaviors: [mtz.WizardStepErrorsBehavior]
+    });
+  </script>
+</dom-module>

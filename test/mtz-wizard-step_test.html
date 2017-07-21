@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>mtz-wizard-step test</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../mtz-wizard-step.html">
+  </head>
+  <body>
+    <test-fixture id="basic">
+      <template>
+        <mtz-wizard-step></mtz-wizard-step>
+      </template>
+    </test-fixture>
+    <test-fixture id="withForm">
+      <template>
+        <mtz-wizard-step name="step">
+          <form wizard-form id="form">
+            <paper-input
+              id="input"
+              name="input"
+              key="key-input"
+            ></paper-input>
+          </form>
+        </mtz-wizard-step>
+      </template>
+    </test-fixture>
+
+    <script>
+      describe('mtz-wizard-step', () => {
+        let element, parent;
+
+        beforeEach(() => {
+          element = fixture('basic');
+          parent = element.parentNode;
+        });
+
+        /* Setters */
+        describe('hostAttributes', () => {
+          it('should set [wizard-step]', () => {
+            expect(element.getAttribute('wizard-step')).to.equal('');
+          });
+        });
+        /* Lifecycle Events */
+        describe('ready()', () => {
+          it('should register __updateDirty as a bound function', () => {
+            const spy = sinon.spy(element.__updateDirty, 'bind');
+            element[`${Polymer.Element ? '' : '_'}ready`]();
+            expect(spy).calledWith(element);
+          });
+          it('should register __revertErrorMessage as a bound function', () => {
+            const spy = sinon.spy(element.__revertErrorMessage, 'bind');
+            element[`${Polymer.Element ? '' : '_'}ready`]();
+            expect(spy).calledWith(element);
+          });
+        });
+        describe('attached()', () => {
+          it('should register an event listener for change', (done) => {
+            parent.removeChild(element);
+            element.addEventListener = sinon.spy();
+            parent.appendChild(element);
+            flush(() => {
+              expect(element.addEventListener).calledWith('change', element.__updateDirty);
+              done();
+            });
+          });
+          it('should create a nodeObserver', () => {
+            expect(typeof element.__nodeObserver).to.equal('object');
+          });
+        });
+        describe('detached()', () => {
+          let spy;
+
+          beforeEach((done) => {
+            spy = sinon.spy(element, 'removeEventListener');
+            parent.removeChild(element);
+            flush(done);
+          });
+
+          it('should remove the change event listener', () => {
+            expect(spy).calledWith('change', element.__updateDirty);
+          });
+          it('should remove the nodeObserver', () => {
+            expect(element.__nodeObserver).to.equal(null);
+          });
+        });
+        /* Public Methods */
+        describe('reset()', () => {
+          it('should set invalid to false', () => {
+            element._setInvalid(true);
+            expect(element.invalid).to.equal(true);
+            element.reset();
+            expect(element.invalid).to.equal(false);
+          });
+          it('should set dirty to false', () => {
+            element._setDirty(true);
+            expect(element.dirty).to.equal(true);
+            element.reset();
+            expect(element.dirty).to.equal(false);
+          });
+          it('should reset the form if one exists', () => {
+            element.form = {
+              reset: sinon.spy()
+            };
+            element.reset();
+            expect(element.form.reset).called;
+          });
+          it('should not reset the form is one does not exist', () => {
+            expect(element.form).to.equal(null);
+            expect(element.reset.bind(element)).to.not.throw();
+          });
+        });
+        describe('validate()', () => {
+          it('should return true when no form and !required', () => {
+            expect(element.validate()).to.equal(true);
+            expect(element.invalid).to.equal(false);
+          });
+          it('should return true when no form and required', () => {
+            element.required = true;
+            expect(element.validate()).to.equal(true);
+            expect(element.invalid).to.equal(false);
+          });
+
+          describe('when there is a form', () => {
+            beforeEach(() => {
+              element.form = {
+                validate: sinon.stub()
+              };
+            });
+
+            describe('and form.validate() succeeds', () => {
+              beforeEach(() => {
+                element.form.validate.returns(true);
+              });
+
+              it('should return true when required', () => {
+                element.required = true;
+                expect(element.validate()).to.equal(true);
+                expect(element.invalid).to.equal(false);
+              });
+              it('should return true when !required', () => {
+                expect(element.validate()).to.equal(true);
+                expect(element.invalid).to.equal(false);
+              });
+            });
+            describe('and form.validate() fails', () => {
+              beforeEach(() => {
+                element.form.validate.returns(false);
+              });
+
+              it('should return false when required', () => {
+                element.required = true;
+                expect(element.validate()).to.equal(false);
+                expect(element.invalid).to.equal(true);
+              });
+              it('should return true when !required', () => {
+                expect(element.validate()).to.equal(true);
+                expect(element.invalid).to.equal(false);
+              });
+            });
+          });
+        });
+        /* Private Methods */
+        describe('__revertErrorMessage(event)', () => {
+          let input;
+
+          beforeEach((done) => {
+            element = fixture('withForm');
+            flush(() => {
+              input = element.form.querySelector('#input');
+              input.addEventListener('invalid-changed', element.__revertErrorMessage);
+              done();
+            });
+          });
+
+          it('should remove itself from listening on the field', (done) => {
+            const spy = sinon.spy(input, 'removeEventListener');
+            input.dispatchEvent(new CustomEvent('invalid-changed'));
+            flush(() => {
+              expect(spy).calledWith('invalid-changed', element.__revertErrorMessage);
+              done();
+            });
+          });
+          it('should revert back to the original error-message when there is an original', (done) => {
+            input.originalErrorMessage = 'test';
+            input.dispatchEvent(new CustomEvent('invalid-changed'));
+            flush(() => {
+              expect(input.errorMessage).to.equal('test');
+              expect(input.getAttribute('error-message')).to.equal('test');
+              expect(input.originalErrorMessage).to.be.undefined;
+              done();
+            });
+          });
+          it('should remove error-message attribute when there is no original error message', (done) => {
+            input.errorMessage = 'test';
+            input.setAttribute('error-message', 'test');
+            input.dispatchEvent(new CustomEvent('invalid-changed'));
+            flush(() => {
+              expect(input.errorMessage).to.be.undefined;
+              expect(input.getAttribute('error-message')).to.be.null;
+              done();
+            });
+          });
+        });
+        describe('__setErrorState(errors, messageAttr, invalidAttr, keyAttr)', () => {
+          const badFieldError = {
+              step: 'step',
+              field: 'bad-field',
+              message: 'never show'
+            },
+            goodFieldError = {
+              step: 'step',
+              field: 'key-input',
+              message: 'error message'
+            },
+            otherStepError = {
+              step: 'step2',
+              field: 'input',
+              message: 'wrong step'
+            };
+          let input, spy;
+
+          beforeEach((done) => {
+            element = fixture('withForm');
+            element.errorMessageAttribute = 'foo';
+            element.invalidAttribute = 'bar';
+            element.keyAttribute = 'key';
+            // element.
+            flush(() => {
+              input = element.form.querySelector('#input');
+              spy = sinon.spy(input, 'addEventListener');
+              done();
+            });
+          });
+
+          it('should do nothing when there are no errors', () => {
+            expect(element.__setErrorState.bind(element, null)).to.not.throw();
+            expect(spy).not.to.be.called;
+          });
+          it('should ignore errors for bad steps and fields', () => {
+            expect(element.__setErrorState.bind(element, [otherStepError, badFieldError])).
+              not.to.throw();
+            expect(spy).not.to.be.called;
+          });
+          it('should set originalErrorMessage for fields with an error-message', () => {
+            input[element.errorMessageAttribute] = 'test error';
+            element.__setErrorState([goodFieldError]);
+            expect(input.originalErrorMessage).to.equal('test error');
+          });
+          it('should update field[messageAttr] to the new error message', () => {
+            element.__setErrorState([goodFieldError]);
+            expect(input[element.errorMessageAttribute]).to.equal(goodFieldError.message);
+          });
+          it('should set field[invalidAttr] to true', () => {
+            element.__setErrorState([goodFieldError]);
+            expect(input[element.invalidAttribute]).to.be.true;
+          });
+          it('should bind an event listener for invalid-changed', () => {
+            element.__setErrorState([goodFieldError]);
+            expect(spy).calledWith('invalid-changed', element.__revertErrorMessage);
+          });
+        });
+        describe('__updateDirty()', () => {
+          it('should set dirty to true', () => {
+            expect(element.dirty).to.equal(false);
+            element.__updateDirty();
+            expect(element.dirty).to.equal(true);
+          });
+        });
+        /* Interactions */
+        describe('__nodeObserver: when content changes', () => {
+          it('should attach the form to the step when matching on selector', (done) => {
+            element = fixture('withForm');
+            flush(() => {
+              expect(element.form.getAttribute('id')).to.equal('form');
+              done();
+            });
+          });
+          it('should not attach a form when one does not exist', (done) => {
+            const form = document.createElement('form');
+            element.appendChild(form);
+            flush(() => {
+              expect(element.form).to.equal(null);
+              done();
+            });
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
