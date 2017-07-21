@@ -50,6 +50,24 @@
         notify: true,
         value: false
       },
+      /* TODO: Add optional flows */
+      /* A step that is not required in the flow */
+      optional: {
+        type: Boolean,
+        value: false
+      },
+      /* TODO: Add setting of completed flag */
+      /* Step was finished used for flow control and display */
+      completed: {
+        type: Boolean,
+        value: false
+      },
+      /* TODO: Add editable/non-editable functionality */
+      /* Determines if the step is able to be revisited for modifications */
+      editable: {
+        type: Boolean,
+        value: false
+      },
       /* Used by the stepper to give a pretty name */
       label: String,
       /* Used to map the UI and API together for validation and data interfacing */
@@ -107,8 +125,8 @@
      * @return {Boolean}
      */
     validate() {
-      const validForm = (this.form && this.form.validate()) || !this.form;
-      const valid = (this.required && validForm) || !this.required;
+      const validForm = !this.form || this.form.validate();
+      const valid = !this.required || validForm;
       this._setInvalid(!valid);
       return valid;
     },

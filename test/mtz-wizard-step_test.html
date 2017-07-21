@@ -20,13 +20,15 @@
     <test-fixture id="withForm">
       <template>
         <mtz-wizard-step name="step">
-          <form wizard-form id="form">
-            <paper-input
-              id="input"
-              name="input"
-              key="key-input"
-            ></paper-input>
-          </form>
+           <iron-form wizard-form id="form">
+             <form is="iron-form">
+              <paper-input
+                id="input"
+                name="input"
+                key="key-input"
+              ></paper-input>
+            </form>
+           </iron-form>
         </mtz-wizard-step>
       </template>
     </test-fixture>

@@ -8,6 +8,7 @@
 
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
 
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500" rel="stylesheet">
     <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
     <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
     <link rel="import" href="../mtz-wizard.html">
@@ -15,34 +16,51 @@
     <link rel="import" href="../mtz-wizard-step.html">
     <link rel="import" href="../../iron-form/iron-form.html">
 
-    <style is="custom-style" include="demo-pages-shared-styles">
-    </style>
+    <custom-style>
+      <style is="custom-style" include="demo-pages-shared-styles">
+        mtz-wizard-stepper {
+          font-family: 'Roboto', sans-serif;
+        }
+      </style>
+    </custom-style>
   </head>
   <body>
-    <div class="vertical-section-container centered">
+    <div class="vertical-section-container">
       <h3>Basic mtz-wizard demo</h3>
       <demo-snippet>
         <template>
           <demo-el></demo-el>
           <dom-module id="demo-el">
             <template>
-              <button on-tap="toggleActive">
+              <button on-click="toggleActive">
                 Toggle Active
               </button>
-              <button on-tap="toggleStep">
+              <button on-click="toggleStep">
                 Toggle Step
               </button>
               <mtz-wizard-stepper
                 steps="[[steps]]"
                 selected="{{selected}}"
+                i18n="[[i18n]]"
               ></mtz-wizard-stepper>
               <mtz-wizard active="[[active]]" steps="{{steps}}" selected="{{selected}}" id="wizard">
+                <mtz-wizard-step name="step-0" label="Select campaign settings">
+                  step with no form
+                </mtz-wizard-step>
                 <template is="dom-if" if="[[!hideStep]]" restamp>
-                  <mtz-wizard-step name="step-0" label="Step 0">
-                    Conditional step with no form
+                  <mtz-wizard-step name="step-1" label="Create ad group" optional>
+                    <h4>Optional step with a form</h4>
+                    <iron-form wizard-form>
+                      <form is="iron-form">
+                        <label>
+                          Age:
+                          <input required type="number" name="firstName" />
+                        </label>
+                      </form>
+                    </iron-form>
                   </mtz-wizard-step>
                 </template>
-                <mtz-wizard-step required name="step-1" label="Name">
+                <mtz-wizard-step name="step-2" label="Create ad" required>
                   <h4>Required step with a form</h4>
                   <iron-form wizard-form>
                     <form is="iron-form">
@@ -58,31 +76,20 @@
                     </form>
                   </iron-form>
                 </mtz-wizard-step>
-                <div class="wizard-step" name="step-2" label="step-2-key">
-                  Div treated as a step
+                <div class="wizard-step" name="step-3" label="step-3-key">
+                  Conditional Div treated as a step
                 </div>
-                <mtz-wizard-step name="step-3" label="Step 3">
-                  <h4>Optional step with a form</h4>
-                  <iron-form wizard-form>
-                    <form is="iron-form">
-                      <label>
-                        Age:
-                        <input required type="number" name="firstName" />
-                      </label>
-                    </form>
-                  </iron-form>
-                </mtz-wizard-step>
                 <div name="ignored-step">
                   should never be visible
                 </div>
               </mtz-wizard>
-              <button on-tap="nextStep">
-                Next Step
-              </button>
-              <button on-tap="prevStep">
+              <button on-click="prevStep">
                 Previous Step
               </button>
-              <button on-tap="validate">
+              <button on-click="nextStep">
+                Next Step
+              </button>
+              <button on-click="validate">
                 Validate Steps
               </button>
             </template>
@@ -100,7 +107,16 @@
                       value: false
                     },
                     selected: String,
-                    steps: Array
+                    steps: Array,
+                    i18n: {
+                      type: Object,
+                      value() {
+                        return {
+                          'OPTIONAL': 'Optional',
+                          'step-3-key': 'Preview'
+                        };
+                      }
+                    }
                   },
                   nextStep() {
                     this.$.wizard.next();

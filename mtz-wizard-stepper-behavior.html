@@ -33,6 +33,18 @@
         type: String,
         notify: true
       },
+      /* The currently selected step index */
+      selectedIndex: {
+        type: Number,
+        notify: true
+      },
+      /* i18n text lookup */
+      i18n: {
+        type: Object,
+        value() {
+          return {};
+        }
+      },
       /**
        * Generated from the steps property and used to create the stepper’s visualization.
        * @type {Array<{key: String, label: String, invalid: Boolean, active: Boolean}>}
@@ -61,9 +73,9 @@
      * @param {String} key
      * @return {String}
      */
-    localize(key) {
+    localize(key = '') {
       // TODO: add the localize behavior that Polymer provides
-      return key;
+      return this.get(key, this.i18n) || key;
     },
     /**
      * Moves to the step that was clicked on by updating the selected property with the step’s key.
@@ -72,6 +84,7 @@
      */
     selectStep({model: {index}}) {
       this.selected = this.__steps[index].key;
+      this.selectedIndex = index;
     },
     /**
      * Takes in the array of HTMLElement steps from wizard and creates an Object array to use for generating the stepper
@@ -102,7 +115,10 @@
           label: this.__serializeElementProperty(step, 'label', String) || '',
           dirty: this.__serializeElementProperty(step, 'dirty', Boolean),
           invalid: this.__serializeElementProperty(step, 'invalid', Boolean),
-          active: this.__serializeElementProperty(step, this.selectedAttribute, Boolean)
+          active: this.__serializeElementProperty(step, this.selectedAttribute, Boolean),
+          optional: this.__serializeElementProperty(step, 'optional', Boolean),
+          completed: this.__serializeElementProperty(step, 'completed', Boolean),
+          editable: this.__serializeElementProperty(step, 'editable', Boolean)
         };
         return data;
       }));

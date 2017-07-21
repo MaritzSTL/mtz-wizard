@@ -38,9 +38,16 @@
         });
         /* Public Methods */
         describe('localize(key)', () => {
-          // TODO: test this @stramel
           it('should return the key if there is no translation', () => {
             expect(element.localize('foo')).to.equal('foo');
+          });
+          it('should return the translation if there is a key', () => {
+            element.i18n.OPTIONAL = 'bar';
+            expect(element.localize('OPTIONAL')).to.equal('bar');
+          });
+          it('should return the translation if there is a key path', () => {
+            element.i18n.foo = {bar: {baz: 'foobar'}};
+            expect(element.localize('foo.bar.baz')).to.equal('foobar');
           });
         });
         describe('selectStep(event)', () => {
@@ -69,6 +76,48 @@
             expect(element.selected).to.equal('step2');
           });
         });
+        describe('_getStepIcon(active, invalid, editable, completed)', () => {
+          it('should return invalid icon if invalid', () => {
+            expect(element._getStepIcon(true, true)).to.equal('icons:report-problem');
+          });
+          it('should return nothing if active or not completed and not invalid', () => {
+            expect(element._getStepIcon(true, false)).to.equal('');
+            expect(element._getStepIcon(false, false)).to.equal('');
+          });
+          it('should return editable icon if completed and editable', () => {
+            expect(element._getStepIcon(false, false, true, true)).to.equal('editor:mode-edit');
+          });
+          it('should return completed icon if completed and not editable', () => {
+            expect(element._getStepIcon(false, false, false, true)).to.equal('icons:done');
+          });
+        });
+        describe('_getSubText(invalid, optional, [errorMessage])', () => {
+          it('should return nothing if not optional and not invalid', () => {
+            expect(element._getSubText(false, false)).not.to.be.ok;
+          });
+          it('should return optional text if optional and not invalid', () => {
+            expect(element._getSubText(false, true)).to.equal('OPTIONAL');
+          });
+          it('should return an nothing if invalid without error message', () => {
+            expect(element._getSubText(true)).not.to.be.ok;
+          });
+          it('should return the error message if invalid with an error message', () => {
+            expect(element._getSubText(true, true, 'boo')).to.equal('boo');
+          });
+        });
+        /* Private Methods */
+        describe('__preventSkipping(linear, selectedIndex, index)', () => {
+          it('should not prevent skipping on non-linear steppers', () => {
+            expect(element.__preventSkipping(false, 1, 2)).to.be.false;
+          });
+          it('should prevent skipping on linear steppers where the step is not active', () => {
+            expect(element.__preventSkipping(true, 1, 2)).to.be.true;
+          });
+          it('should not prevent skipping on linear steppers where the step is active', () => {
+            expect(element.__preventSkipping(true, 1, 1)).to.be.false;
+          });
+        });
+
         /* Private Methods */
         describe('__generateSteps(steps)', () => {
           let steps;
@@ -119,14 +168,20 @@
                 label: 'step1',
                 dirty: false,
                 invalid: false,
-                active: true
+                active: true,
+                optional: false,
+                completed: false,
+                editable: false,
               },
               {
                 key: 'step2',
                 label: '',
                 dirty: false,
                 invalid: false,
-                active: false
+                active: false,
+                optional: false,
+                completed: false,
+                editable: false,
               },
             ]);
           });
@@ -198,22 +253,22 @@
               type: 'attributes',
               attributeName: 'foo',
               target: {
-                stepIndex: 0
-              }
+                stepIndex: 0,
+              },
             },
             {
               type: 'attributes',
               attributeName: 'bar',
               target: {
-                stepIndex: 1
-              }
+                stepIndex: 1,
+              },
             },
             {
               type: 'test',
               attributeName: 'test',
               target: {
-                stepIndex: 2
-              }
+                stepIndex: 2,
+              },
             },
           ];
 

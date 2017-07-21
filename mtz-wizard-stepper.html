@@ -1,9 +1,44 @@
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../iron-icons/editor-icons.html">
+<link rel="import" href="../paper-ripple/paper-ripple.html">
 <link rel="import" href="mtz-wizard-stepper-behavior.html">
 
 <!--
 `mtz-wizard-stepper`
 A basic implementation of the `mtz.WizardStepperBehavior` for navigating an `mtz-wizard` element.
+
+Custom property | Description | Default
+----------------|-------------|----------
+`--mtz-wizard-stepper` | Mixin applied to the host | `{}`
+`--mtz-wizard-stepper__step-wrapper` | Mixin applied to the step wrapper | `{}`
+`--mtz-wizard-stepper__step-line` | Mixin applied to the step line | `{}`
+`--mtz-wizard-stepper__step-line--color` | Step line color | Grey 400
+`--mtz-wizard-stepper__first-step-badge` | Mixin applied to the first step badge | `{}`
+`--mtz-wizard-stepper__last-step-label` | Mixin applied to the last step label | `{}`
+`--mtz-wizard-stepper__step` | Mixin applied to the step | `{}`
+`--mtz-wizard-stepper__step-hover` | Mixin applied to the step during hover | `{}`
+`--mtz-wizard-stepper__step-hover--background-color` | step hover background color | 6% Black
+`--mtz-wizard-stepper__step-disabled` | Mixin applied to disabled steps | `{}`
+`--mtz-wizard-stepper__active-badge` | Mixin applied to the active & completed badges | `{}`
+`--mtz-wizard-stepper__valid-icons` | Mixin applied to the valid icons | `{}`
+`--mtz-wizard-stepper__badge-wrapper` | Mixin applied to the badge wrapper | `{}`
+`--mtz-wizard-stepper__badge-sizer` | Mixin applied to the badge and badge-wrapper | `{}`
+`--mtz-wizard-stepper__badge` | Mixin applied to the badge | `{}`
+`--mtz-wizard-stepper__badge--background-color` | Badge background color | 38% Black
+`--mtz-wizard-stepper__badge-positioning` | Mixin applied to the badge icon and counter | `{}`
+`--mtz-wizard-stepper__badge-counter` | Mixin applied to the badge counter | `{}`
+`--mtz-wizard-stepper__invalid-badge` | Mixin applied to invalid badges | `{}`
+`--mtz-wizard-stepper__label-wrapper` | Mixin applied to the label-wrapper | `{}`
+`--mtz-wizard-stepper__label` | Mixin applied to the label | `{}`
+`--mtz-wizard-stepper__label--color` | Label color | 38% Black
+`--mtz-wizard-stepper__label-overflow` | Mixin applied to the label text overflow | `{}`
+`--mtz-wizard-stepper__optional-label` | Mixin applied to the optional label | `{}`
+`--mtz-wizard-stepper__optional-label--color` | Optional label color | 54% Black
+`--mtz-wizard-stepper__active-label` | Mixin applied to the active label | `{}`
+`--mtz-wizard-stepper__active-label--color` | Active label color | 87% Black
+`--mtz-wizard-stepper__invalid-step-content` | Mixin applied to the invalid step's content | `{}`
 
 @demo demo/index.html
 -->
@@ -11,33 +46,263 @@ A basic implementation of the `mtz.WizardStepperBehavior` for navigating an `mtz
   <template>
     <style>
       :host {
-        display: block;
+        display: flex;
+        font-size: 14px;
+        counter-reset: step;
+
+        @apply --mtz-wizard-stepper;
+      }
+
+      /* Used for controling text-overflow */
+      .step-wrapper {
+        flex: 1;
+        overflow: hidden;
+        counter-increment: step;
+
+        @apply --mtz-wizard-stepper__step-wrapper;
+      }
+      /* Adds line between steps */
+      .step-wrapper:not(:first-of-type) > .step::before,
+      .step-wrapper:not(:last-of-type) > .step::after {
+        content: '';
+        height: 1px;
+        flex: 1;
+        min-width: 16px;
+        background-color: var(--mtz-wizard-stepper__step-line--color, #BDBDBD); /* Grey 400 */
+
+        @apply --mtz-wizard-stepper__step-line;
+      }
+      /* Overrides first and last step margin */
+      .step-wrapper:first-of-type .badge-wrapper {
+        margin-left: 24px;
+
+        @apply --mtz-wizard-stepper__first-step-badge;
+      }
+      .step-wrapper:last-of-type .label-wrapper {
+        margin-right: 24px;
+
+        @apply --mtz-wizard-stepper__last-step-label;
+      }
+
+
+      /* Aligns the step information */
+      .step {
+        position: relative;
+        display: flex;
+        flex: 1;
+        align-items: center;
+        height: 72px;
+
+        @apply --mtz-wizard-stepper__step;
+      }
+      /* Hover for non-disabled steps */
+      .step:not([disabled]):hover {
+        background-color: var(--mtz-wizard-stepper__step-hover--background-color, rgba(0,0,0,0.06)); /* 6% Black */
+
+        @apply --mtz-wizard-stepper__step-hover;
+      }
+      /* Prevents clicking on steps */
+      .step[disabled] {
+        pointer-events: none;
+        z-index: 1;
+
+        @apply --mtz-wizard-stepper__step-disabled;
+      }
+      /* Active/Completed Step */
+      .step[active] .badge,
+      .step[completed] .badge {
+        background-color: var(--primary-color, #2196F3); /* Blue 500 */
+
+        @apply --mtz-wizard-stepper__active-badge;
+      }
+      /* Make icons smaller except invalid */
+      .step:not([invalid]) iron-icon {
+        --iron-icon-height: 16px;
+        --iron-icon-width: 16px;
+
+        @apply --mtz-wizard-stepper__valid-icons;
+      }
+
+
+      /* Positions badge and badge content */
+      .badge-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 8px;
+        margin-left: 8px;
+        font-size: 12px;
+        color: var(--mtz-wizard-stepper__badge-wrapper--color, #FFF);
+
+        @apply --mtz-wizard-stepper__badge-wrapper;
+      }
+      .badge-wrapper,
+      .badge {
+        height: 24px;
+        width: 24px;
+
+        @apply --mtz-wizard-stepper__badge-sizer;
+      }
+      .badge {
+        background-color: var(--mtz-wizard-stepper__badge--background-color, rgba(0,0,0,0.38)); /* 38% Black */
+        border-radius: 50%;
+
+        @apply --mtz-wizard-stepper__badge;
+      }
+      /* Position icon and counter over badge */
+      .badge-wrapper::before,
+      .badge-wrapper > iron-icon {
+        position: absolute;
+
+        @apply --mtz-wizard-stepper__badge-positioning;
+      }
+      /* Apply counter to step badge */
+      .step:not([completed]) > .badge-wrapper::before {
+        content: counter(step);
+
+        @apply --mtz-wizard-stepper__badge-counter;
+      }
+      /* Badge should not display for invalid steps */
+      .step[invalid] .badge {
+        display: none;
+
+        @apply --mtz-wizard-stepper__invalid-badge;
+      }
+
+
+      .label-wrapper {
+        display: flex;
+        flex-direction: column;
+        margin-right: 8px;
+        overflow: hidden;
+
+        @apply --mtz-wizard-stepper__label-wrapper;
+      }
+      .label {
+        font-size: 14px;
+        color: var(--mtz-wizard-stepper__label--color, rgba(0,0,0,0.38)); /* 38% Black */
+
+        @apply --mtz-wizard-stepper__label;
+      }
+      /* Ellipsis long text */
+      .label,
+      .optional {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+
+        @apply --mtz-wizard-stepper__label-overflow;
+      }
+      .label + .optional {
+        font-size: 12px;
+        color: var(--mtz-wizard-stepper__optional-label--color, rgba(0,0,0,0.54)); /* 54% Black */
+
+        @apply --mtz-wizard-stepper__optional-label;
+      }
+      /* Selected step */
+      .step[active] .label {
+        font-weight: 500; /* Medium */
+        color: var(--mtz-wizard-stepper__active-label--color, rgba(0,0,0,0.87)); /* 87% Black */
+
+        @apply --mtz-wizard-stepper__active-label;
+      }
+
+
+      /* Apply invalid state */
+      .step[invalid] .label,
+      .step[invalid] .optional,
+      .step[invalid] iron-icon {
+        color: var(--error-color, #F44336); /* Red 500 */
+
+        @apply --mtz-wizard-stepper__invalid-step-content;
+      }
+
+
+      /* Override browser specificity */
+      [hidden],
+      :host([hidden]) {
+        display: none !important;
       }
     </style>
 
-    <template is="dom-repeat" items="[[__steps]]">
-      <div on-tap="selectStep">
-        <div>
-          key: [[item.key]]
-        </div>
-        <div>
-          active: [[item.active]]
-        </div>
-        <div>
-          invalid: [[item.invalid]]
-        </div>
-        <div>
-          dirty: [[item.dirty]]
+    <template is="dom-repeat" items="[[__steps]]" as="step">
+      <div class="step-wrapper">
+        <div class="step"
+            active$="[[step.active]]"
+            dirty$="[[step.dirty]]"
+            invalid$="[[step.invalid]]"
+            optional$="[[step.optional]]"
+            editable$="[[step.editable]]"
+            disabled$="[[__preventSkipping(linear, selectedIndex, index)]]"
+            on-click="selectStep">
+          <div class="badge-wrapper">
+            <iron-icon
+              icon="[[_getStepIcon(step.active, step.invalid, step.editable, step.completed)]]"
+              hidden="[[!_getStepIcon(step.active, step.invalid, step.editable, step.completed)]]"
+            ></iron-icon>
+            <div class="badge"></div>
+          </div>
+          <div class="label-wrapper">
+            <span class="label">[[localize(step.label)]]</span>
+            <span class="optional">[[_getSubText(step.invalid, step.optional, step.errorMessage)]]</span>
+          </div>
+          <paper-ripple></paper-ripple>
         </div>
       </div>
-      <br />
     </template>
   </template>
 
   <script>
     Polymer({
       is: 'mtz-wizard-stepper',
-      behaviors: [mtz.WizardStepperBehavior]
+      behaviors: [mtz.WizardStepperBehavior],
+      properties: {
+        linear: Boolean,
+        vertical: Boolean, // TODO: implement
+        alternative: Boolean, // TODO: implement
+      },
+      /**
+       * Determine the icon based on the state of the step
+       *
+       * @param {Boolean} active
+       * @param {Boolean} invalid
+       * @param {Boolean} editable
+       * @param {Boolean} completed
+       * @return {String}
+       * @protected
+       */
+      _getStepIcon(active, invalid, editable, completed) {
+        return invalid ? 'icons:report-problem' :
+               (active || !completed) ? '' :
+               editable ? 'editor:mode-edit' :
+               'icons:done';
+      },
+      /**
+       * Determine the subtext of the step
+       *
+       * @param {Boolean} invalid
+       * @param {Boolean} optional - Shows an invalid message if true
+       * @param {String} [errorMessage=''] - Used for subtext if the step is invalid
+       * @return {String}
+       * @protected
+       */
+      _getSubText(invalid, optional, errorMessage = '') {
+        return invalid && errorMessage ? this.localize(errorMessage) :
+               optional ? this.localize('OPTIONAL') :
+               undefined;
+      },
+      /**
+       * Prevents non-linear movement on a linear stepper
+       *
+       * @param {Boolean} linear
+       * @param {Number} selectedIndex
+       * @param {Number} index - current index
+       * @return {Boolean}
+       * @private
+       */
+      __preventSkipping(linear, selectedIndex, index) {
+        return linear && (index !== selectedIndex);
+      },
     });
   </script>
 </dom-module>
