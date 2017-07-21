@@ -48,6 +48,20 @@ methods for navigation and `wizard-form` interactions, is responsible for render
           type: String,
           computed: '__computeFallbackSelection(steps, attrForSelected)'
         },
+        /* Set to true when on the first step in the wizard */
+        onFirstStep: {
+          type: Boolean,
+          value: false,
+          readOnly: true,
+          notify: true
+        },
+        /* Set to true when on the last step in the wizard */
+        onLastStep: {
+          type: Boolean,
+          value: false,
+          readOnly: true,
+          notify: true
+        },
         /* This is a CSS selector string. If this is set, only items that match the CSS selector are selectable. */
         selectable: {
           type: String,
@@ -70,6 +84,7 @@ methods for navigation and `wizard-form` interactions, is responsible for render
         selectedItem: {
           type: Object,
           notify: true,
+          observer: '__selectedItemChanged'
         },
         /* The Set of HTMLElements that make up the steps */
         steps: {
@@ -94,21 +109,17 @@ methods for navigation and `wizard-form` interactions, is responsible for render
       },
       /**
        * Changes the currently active step to the next step in the array of steps, loops from end to beginning.
-       *
-       * @return {HTMLElement}
        */
       next() {
-        this.$.selector.selectNext();
-        return this.selectedItem;
+        if (!this.onLastStep)
+          this.$.selector.selectNext();
       },
       /**
        * Changes the currently active step to the previous step in the array of steps, loops from beginning to end.
-       *
-       * @return{HTMLElement}
        */
       previous() {
-        this.$.selector.selectPrevious();
-        return this.selectedItem;
+        if (!this.onFirstStep)
+          this.$.selector.selectPrevious();
       },
       /**
        * Runs the reset logic on every step that has a form bound to it.
@@ -164,6 +175,17 @@ methods for navigation and `wizard-form` interactions, is responsible for render
         if (attr && steps && steps.length > 0)
           fallback = steps[0].getAttribute(attr);
         return fallback;
+      },
+      /**
+       * Runs when selected item is changed, used to set onFirstStep and onLastStep.
+       * @private
+       *
+       * @param {Object} item - the selected item
+       */
+      __selectedItemChanged(item) {
+        const index = item ? this.$.selector.indexOf(item) : null;
+        this._setOnFirstStep(index === 0);
+        this._setOnLastStep(index === this.steps.length - 1);
       }
     });
   </script>

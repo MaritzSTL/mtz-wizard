@@ -38,6 +38,9 @@
     observers: [
       '__setErrorState(errors)'
     ],
+    /**
+     * Sets up bound functions for event bindings.
+     */
     ready() {
       this.__revertErrorMessage = this.__revertErrorMessage.bind(this);
     },

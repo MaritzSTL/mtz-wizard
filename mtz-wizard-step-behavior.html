@@ -72,6 +72,9 @@
     ready() {
       this.__updateDirty = this.__updateDirty.bind(this);
     },
+    /**
+     * Binds the event listeners and node observers.
+     */
     attached() {
       this.addEventListener('change', this.__updateDirty);
 
@@ -79,6 +82,9 @@
         this.set('form', Polymer.dom(this).queryDistributedElements(this.formSelector)[0] || null);
       });
     },
+    /**
+     * Cleans up the event listeners and node observers.
+     */
     detached() {
       this.removeEventListener('change', this.__updateDirty);
 

@@ -97,22 +97,17 @@
             flush(done);
           });
 
-          it('should call selector.selectNext()', () => {
+          it('should call selector.selectNext() when !onLastStep', () => {
             const selector = element.$.selector;
-            selector.selectNext = sinon.spy();
+            element.select('step1');
             element.next();
-            expect(selector.selectNext).called;
+            expect(element.selected).to.equal('step2');
           });
-          it('should return selectedItem', (done) => {
-            const prevItem = Object.assign({}, element.selectedItem);
-            const response = element.next();
-
-            flush(() => {
-              expect(response).to.deep.equal(element.selectedItem);
-              expect(prevItem).to.not.deep.equal(element.selectedItem);
-              expect(element.selectedItem).to.be.ok;
-              done();
-            });
+          it('should not call selector.selectNext() when onLastStep', () => {
+            const selector = element.$.selector;
+            element.select('step3');
+            element.next();
+            expect(element.selected).to.equal('step3');
           });
         });
         describe('previous()', () => {
@@ -121,22 +116,17 @@
             flush(done);
           });
 
-          it('should call selector.selectPrevious()', () => {
+          it('should call selector.selectPrevious() when !onFirstStep', () => {
             const selector = element.$.selector;
-            selector.selectPrevious = sinon.spy();
+            element.select('step2');
             element.previous();
-            expect(selector.selectPrevious).called;
+            expect(element.selected).to.equal('step1');
           });
-          it('should return selectedItem', (done) => {
-            const prevItem = Object.assign({}, element.selectedItem);
-            const response = element.previous();
-
-            flush(() => {
-              expect(response).to.deep.equal(element.selectedItem);
-              expect(prevItem).to.not.deep.equal(element.selectedItem);
-              expect(element.selectedItem).to.be.ok;
-              done();
-            });
+          it('should not call selector.selectPrevious() when onFirstStep', () => {
+            const selector = element.$.selector;
+            element.select('step1');
+            element.previous();
+            expect(element.selected).to.equal('step1');
           });
         });
         describe('reset(steps)', () => {
@@ -271,6 +261,28 @@
               expect(element.__computeFallbackSelection(element.steps, 'name')).
                 to.equal('');
             });
+          });
+        });
+        describe('__selectedItemChanged(item)', () => {
+          beforeEach((done) => {
+            element.active = true;
+            flush(done);
+          });
+
+          it('should set onFirstStep to true when on the first step', () => {
+            element.__selectedItemChanged(element.steps[0]);
+            expect(element.onFirstStep).to.be.true;
+            expect(element.onLastStep).to.be.false;
+          });
+          it('should set onLastStep to true when on the last step', () => {
+            element.__selectedItemChanged(element.steps[2]);
+            expect(element.onFirstStep).to.be.false;
+            expect(element.onLastStep).to.be.true;
+          });
+          it('should set onFirstStep and onLastStep to false when no on first or last', () => {
+            element.__selectedItemChanged(element.steps[1]);
+            expect(element.onFirstStep).to.be.false;
+            expect(element.onLastStep).to.be.false;
           });
         });
       });
