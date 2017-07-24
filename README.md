@@ -28,7 +28,7 @@ Generates a wizard flow from steps provided. Allows for validation across all st
 -->
 ```html
 <mtz-wizard-stepper steps="[[steps]]" selected="{{selected}}"></mtz-wizard-stepper>
-<mtz-wizard id="wizard" selected="{{selected}}">
+<mtz-wizard id="wizard" steps="{{steps}}" selected="{{selected}}">
   <mtz-wizard-step name="step-1" label="Select campaign settings">
     Step 1 - Prebuilt step
   </mtz-wizard-step>
