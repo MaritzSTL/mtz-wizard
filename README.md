@@ -12,6 +12,14 @@ Generates a wizard flow from steps provided. Allows for validation across all st
     <link rel="import" href="mtz-wizard.html">
     <link rel="import" href="mtz-wizard-step.html">
     <link rel="import" href="mtz-wizard-stepper.html">
+    
+    <custom-style>
+      <style is="custom-style" include="demo-pages-shared-styles">
+        mtz-wizard-stepper {
+          font-family: 'Roboto', sans-serif;
+        }
+      </style>
+    </custom-style>
 
     <next-code-block></next-code-block>
   </template>
@@ -20,7 +28,7 @@ Generates a wizard flow from steps provided. Allows for validation across all st
 -->
 ```html
 <mtz-wizard-stepper steps="[[steps]]" selected="{{selected}}"></mtz-wizard-stepper>
-<mtz-wizard>
+<mtz-wizard id="wizard" selected="{{selected}}">
   <mtz-wizard-step name="step-1" label="Select campaign settings">
     Step 1 - Prebuilt step
   </mtz-wizard-step>
