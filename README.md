@@ -9,9 +9,9 @@ Generates a wizard flow from steps provided. Allows for validation across all st
 <custom-element-demo>
   <template>
     <link rel="import" href="../iron-form/iron-form.html">
-    <link rel="import" href="mtz-wizard">
-    <link rel="import" href="mtz-wizard-step">
-    <link rel="import" href="mtz-wizard-stepper">
+    <link rel="import" href="mtz-wizard.html">
+    <link rel="import" href="mtz-wizard-step.html">
+    <link rel="import" href="mtz-wizard-stepper.html">
 
     <next-code-block></next-code-block>
   </template>
