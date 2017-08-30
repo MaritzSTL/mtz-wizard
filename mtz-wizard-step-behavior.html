@@ -96,8 +96,15 @@
     attached() {
       this.addEventListener('change', this.__updateDirty);
 
-      this.__nodeObserver = Polymer.dom(this).observeNodes(() => {
-        this.set('form', Polymer.dom(this).queryDistributedElements(this.formSelector)[0] || null);
+      // For non-shadow DOM manipulations
+      this.__nonShadowObserver = Polymer.dom(this).observeNodes(() => {
+        const form = Polymer.dom(this).queryDistributedElements(this.formSelector)[0];
+        this.set('form', form || this.form || null);
+      });
+      // For Shadow DOM manipulations
+      this.__shadowObserver = Polymer.dom(this.root).observeNodes(() => {
+        const form = Polymer.dom(this.root).queryDistributedElements(this.formSelector)[0];
+        this.set('form', form || this.form || null);
       });
     },
     /**
@@ -106,9 +113,15 @@
     detached() {
       this.removeEventListener('change', this.__updateDirty);
 
-      if (this.__nodeObserver) {
-        Polymer.dom(this).unobserveNodes(this.__nodeObserver);
-        this.__nodeObserver = null;
+      // For non-shadow child observer
+      if (this.__nonShadowObserver) {
+        Polymer.dom(this).unobserveNodes(this.__nonShadowObserver);
+        this.__nonShadowObserver = null;
+      }
+      // For shadow DOM child observer
+      if (this.__shadowObserver) {
+        Polymer.dom(this.root).unobserveNodes(this.__shadowObserver);
+        this.__shadowObserver = null;
       }
     },
     /**

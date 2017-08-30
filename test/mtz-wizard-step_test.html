@@ -9,15 +9,20 @@
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
     <script src="../../web-component-tester/browser.js"></script>
 
+    <link rel="import" href="../../paper-input/paper-input.html">
+    <link rel="import" href="../../iron-form/iron-form.html">
+
     <link rel="import" href="../mtz-wizard-step.html">
+    <link rel="import" href="../demo/demo-shadow-form.html">
   </head>
   <body>
+
     <test-fixture id="basic">
       <template>
         <mtz-wizard-step></mtz-wizard-step>
       </template>
     </test-fixture>
-    <test-fixture id="withForm">
+    <test-fixture id="withNonShadowForm">
       <template>
         <mtz-wizard-step name="step">
            <iron-form wizard-form id="form">
@@ -30,6 +35,15 @@
             </form>
            </iron-form>
         </mtz-wizard-step>
+      </template>
+    </test-fixture>
+    <test-fixture id="withShadowForm">
+      <template>
+        <demo-shadow-form
+          class="wizard-step"
+          name="shadowForm"
+          active
+        ></demo-shadow-form>
       </template>
     </test-fixture>
 
@@ -71,8 +85,11 @@
               done();
             });
           });
-          it('should create a nodeObserver', () => {
-            expect(typeof element.__nodeObserver).to.equal('object');
+          it('should create a non-shadow dom observer', () => {
+            expect(typeof element.__nonShadowObserver).to.equal('object');
+          });
+          it('should create a shadow dom observer', () => {
+            expect(typeof element.__shadowObserver).to.equal('object');
           });
         });
         describe('detached()', () => {
@@ -87,8 +104,11 @@
           it('should remove the change event listener', () => {
             expect(spy).calledWith('change', element.__updateDirty);
           });
-          it('should remove the nodeObserver', () => {
-            expect(element.__nodeObserver).to.equal(null);
+          it('should remove the non-shadow observer', () => {
+            expect(element.__nonShadowObserver).to.equal(null);
+          });
+          it('should remove the shadow observer', () => {
+            expect(element.__shadowObserver).to.equal(null);
           });
         });
         /* Public Methods */
@@ -172,7 +192,7 @@
           let input;
 
           beforeEach((done) => {
-            element = fixture('withForm');
+            element = fixture('withNonShadowForm');
             flush(() => {
               input = element.form.querySelector('#input');
               input.addEventListener('invalid-changed', element.__revertErrorMessage);
@@ -203,7 +223,7 @@
             input.setAttribute('error-message', 'test');
             input.dispatchEvent(new CustomEvent('invalid-changed'));
             flush(() => {
-              expect(input.errorMessage).to.be.undefined;
+              expect(input.errorMessage).to.be.null;
               expect(input.getAttribute('error-message')).to.be.null;
               done();
             });
@@ -211,24 +231,24 @@
         });
         describe('__setErrorState(errors, messageAttr, invalidAttr, keyAttr)', () => {
           const badFieldError = {
-              step: 'step',
-              field: 'bad-field',
-              message: 'never show'
-            },
-            goodFieldError = {
-              step: 'step',
-              field: 'key-input',
-              message: 'error message'
-            },
-            otherStepError = {
-              step: 'step2',
-              field: 'input',
-              message: 'wrong step'
-            };
+            step: 'step',
+            field: 'bad-field',
+            message: 'never show',
+          };
+          const goodFieldError = {
+            step: 'step',
+            field: 'key-input',
+            message: 'error message',
+          };
+          const otherStepError = {
+            step: 'step2',
+            field: 'input',
+            message: 'wrong step',
+          };
           let input, spy;
 
           beforeEach((done) => {
-            element = fixture('withForm');
+            element = fixture('withNonShadowForm');
             element.errorMessageAttribute = 'foo';
             element.invalidAttribute = 'bar';
             element.keyAttribute = 'key';
@@ -276,8 +296,15 @@
         });
         /* Interactions */
         describe('__nodeObserver: when content changes', () => {
-          it('should attach the form to the step when matching on selector', (done) => {
-            element = fixture('withForm');
+          it('should attach the form to the step when matching on selector for non-shadow form', (done) => {
+            element = fixture('withNonShadowForm');
+            flush(() => {
+              expect(element.form.getAttribute('id')).to.equal('form');
+              done();
+            });
+          });
+          it('should attach the form to the step when matching on selector for form in shadow dom', (done) => {
+            element = fixture('withShadowForm');
             flush(() => {
               expect(element.form.getAttribute('id')).to.equal('form');
               done();

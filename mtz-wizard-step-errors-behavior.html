@@ -73,7 +73,7 @@
      * @param {String} [keyAttr = this.keyAttribute] - the attribute to lookup on
      */
     __setErrorState(errors, messageAttr = this.errorMessageAttribute, invalidAttr = this.invalidAttribute,
-                    keyAttr = this.keyAttribute) {
+      keyAttr = this.keyAttribute) {
       if (!errors) return;
 
       errors.forEach((error) => {
@@ -92,6 +92,6 @@
         }
       });
       this.set('errors', null);
-    }
+    },
   }];
 </script>
