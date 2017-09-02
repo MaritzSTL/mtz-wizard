@@ -35,6 +35,14 @@
           element = fixture('basic');
         });
 
+        describe('selection', () => {
+          let steps;
+
+          it('should default to the first wizard step', () => {
+            expect(element.selected).to.equal('0');
+          });
+        });
+
         /* Public Methods */
         describe('getFormdata(steps, attr)', () => {
           let spy, steps;
