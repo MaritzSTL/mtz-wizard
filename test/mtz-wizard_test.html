@@ -14,10 +14,10 @@
   <body>
     <test-fixture id="basic">
       <template>
-        <mtz-wizard>
-          <div wizard-step name="step1"></div>
-          <div wizard-step name="step2"></div>
-          <div wizard-step name="step3"></div>
+        <mtz-wizard active>
+          <div class="wizard-step" name="step1" label="step1"></div>
+          <div class="wizard-step" name="step2" label="step2"></div>
+          <div class="wizard-step" name="step3" label="step3"></div>
         </mtz-wizard>
       </template>
     </test-fixture>
@@ -31,15 +31,14 @@
       describe('mtz-wizard', () => {
         let element;
 
-        beforeEach(() => {
+        beforeEach((done) => {
           element = fixture('basic');
+          flush(done);
         });
 
         describe('selection', () => {
-          let steps;
-
           it('should default to the first wizard step', () => {
-            expect(element.selected).to.equal('0');
+            expect(element.selected).to.equal('step1');
           });
         });
 
@@ -246,16 +245,21 @@
           });
         });
         /* Private Methods */
-        describe('__computeFallbackSelection(steps, attr)', () => {
+        describe('__setDefaultSelection(steps, attr)', () => {
           describe('when there are steps', () => {
             beforeEach((done) => {
               element.active = true;
               flush(done);
             });
 
-            it('should return steps[0][attrForSelected]', () => {
-              expect(element.__computeFallbackSelection(element.steps, 'name')).
-                to.equal('step1');
+            it('should set selected to steps[0][attrForSelected]', () => {
+              element.__setDefaultSelection(element.steps, 'name');
+              expect(element.selected).to.equal('step1');
+            });
+            it('should not alter selected if the user has set it', () => {
+              element.selected = 'selection';
+              element.__setDefaultSelection(element.steps, 'name');
+              expect(element.selected).to.equal('selection');
             });
           });
           describe('when there are no steps', () => {
@@ -265,9 +269,9 @@
               flush(done);
             });
 
-            it('should return an empty string', () => {
-              expect(element.__computeFallbackSelection(element.steps, 'name')).
-                to.equal('');
+            it('should not set the selected', () => {
+              element.__setDefaultSelection(element.steps, 'name');
+              expect(element.selected).to.equal(null);
             });
           });
         });
