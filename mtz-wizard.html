@@ -167,8 +167,9 @@ methods for navigation and `wizard-form` interactions, is responsible for render
        * @param {String} attr - the attrForSelected property
        */
       __setDefaultSelection(steps, attr) {
-        if (!this.selected && attr && steps && steps.length > 0)
+        if (!this.selected && attr && steps && steps.length > 0) {
           this.set('selected', steps[0].getAttribute(attr));
+        }
       },
       /**
        * Runs when selected item is changed, used to set onFirstStep and onLastStep.
