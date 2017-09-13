@@ -18,7 +18,6 @@ methods for navigation and `wizard-form` interactions, is responsible for render
       selected-class="[[selectedClass]]"
       selected-item="{{selectedItem}}"
       selected="{{selected}}"
-      fallback-selection="[[fallbackSelection]]"
       items="{{steps}}">
       <template
         is="dom-if"
@@ -36,47 +35,42 @@ methods for navigation and `wizard-form` interactions, is responsible for render
         /* Determines if this wizard is active or not, used to attach/detach the steps from the DOM for data reset */
         active: {
           type: Boolean,
-          value: false
+          value: false,
         },
         /* The attribute to use to match the selection key against */
         attrForSelected: {
           type: String,
-          value: 'name'
-        },
-        /* The fallback selection when nothing is selected */
-        fallbackSelection: {
-          type: String,
-          computed: '__computeFallbackSelection(steps, attrForSelected)'
+          value: 'name',
         },
         /* Set to true when on the first step in the wizard */
         onFirstStep: {
           type: Boolean,
           value: false,
           readOnly: true,
-          notify: true
+          notify: true,
         },
         /* Set to true when on the last step in the wizard */
         onLastStep: {
           type: Boolean,
           value: false,
           readOnly: true,
-          notify: true
+          notify: true,
         },
         /* This is a CSS selector string. If this is set, only items that match the CSS selector are selectable. */
         selectable: {
           type: String,
-          value: '[wizard-step],.wizard-step'
+          value: '[wizard-step],.wizard-step',
         },
         /* The currently selected step, null if no step is selected */
         selected: {
           type: String,
           value: null,
-          notify: true
+          notify: true,
         },
         /* The attribute to set on elements when selected */
         selectedAttribute: {
           type: String,
-          value: 'active'
+          value: 'active',
         },
         /* The class to set on elements when selected. */
         selectedClass: String,
@@ -84,14 +78,17 @@ methods for navigation and `wizard-form` interactions, is responsible for render
         selectedItem: {
           type: Object,
           notify: true,
-          observer: '__selectedItemChanged'
+          observer: '__selectedItemChanged',
         },
         /* The Set of HTMLElements that make up the steps */
         steps: {
           type: Array,
-          notify: true
-        }
+          notify: true,
+        },
       },
+      observers: [
+        '__setDefaultSelection(steps, attrForSelected)',
+      ],
       /**
        * Fetches the model from all steps that have a form with a dirty model, returns as a map of step name to model.
        *
@@ -168,13 +165,11 @@ methods for navigation and `wizard-form` interactions, is responsible for render
        *
        * @param {HTMLElement[]} steps
        * @param {String} attr - the attrForSelected property
-       * @return {String}
        */
-      __computeFallbackSelection(steps, attr) {
-        let fallback = '';
-        if (attr && steps && steps.length > 0)
-          fallback = steps[0].getAttribute(attr);
-        return fallback;
+      __setDefaultSelection(steps, attr) {
+        if (!this.selected && attr && steps && steps.length > 0) {
+          this.set('selected', steps[0].getAttribute(attr));
+        }
       },
       /**
        * Runs when selected item is changed, used to set onFirstStep and onLastStep.
@@ -186,7 +181,7 @@ methods for navigation and `wizard-form` interactions, is responsible for render
         const index = item ? this.$.selector.indexOf(item) : null;
         this._setOnFirstStep(index === 0);
         this._setOnLastStep(index === this.steps.length - 1);
-      }
+      },
     });
   </script>
 </dom-module>
