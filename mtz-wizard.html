@@ -19,12 +19,7 @@ methods for navigation and `wizard-form` interactions, is responsible for render
       selected-item="{{selectedItem}}"
       selected="{{selected}}"
       items="{{steps}}">
-      <template
-        is="dom-if"
-        if="[[active]]"
-        restamp>
-        <slot></slot>
-      </template>
+      <slot></slot>
     </iron-pages>
   </template>
 
