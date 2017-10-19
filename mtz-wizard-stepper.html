@@ -92,6 +92,7 @@ Custom property | Description | Default
         flex: 1;
         align-items: center;
         height: 72px;
+        cursor: pointer;
 
         @apply --mtz-wizard-stepper__step;
       }
@@ -105,6 +106,7 @@ Custom property | Description | Default
       .step[disabled] {
         pointer-events: none;
         z-index: 1;
+        cursor: not-allowed;
 
         @apply --mtz-wizard-stepper__step-disabled;
       }
