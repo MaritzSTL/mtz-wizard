@@ -91,7 +91,34 @@
           field.addEventListener('invalid-changed', this.__revertErrorMessage);
         }
       });
-      this.set('errors', null);
+    },
+
+    /**
+     * Revert all of the error messages to a valid state.
+     * @param {Object[]} [errors = this.errors] - Error objects associated with the current errors.
+     * @param {String} [messageAttr = this.errorMessageAttribute] - the attribute to set the message on
+     * @param {String} [invalidAttr = this.invalidAttribute] - the attribute to toggle for invalid state
+     * @param {String} [keyAttr = this.keyAttribute] - the attribute to lookup on
+     */
+    revertErrorMessages(errors = this.errors, messageAttr = this.errorMessageAttribute,
+      invalidAttr = this.invalidAttribute, keyAttr = this.keyAttribute) {
+      if (!Array.isArray(errors)) return;
+
+      errors.forEach((error) => {
+        // Errors should be filtered just to this step, however we want to sanity check them
+        if (error.step === this.name) {
+          const field = this.form.querySelector(`[${keyAttr}="${error.field}"]`);
+          if (!field) return;
+
+          field.originalErrorMessage = field[messageAttr];
+          field[messageAttr] = error.message;
+          // Required to get the UI to update properly
+          field.setAttribute(messageAttr, '');
+          field[invalidAttr] = false;
+
+          field.removeEventListener('invalid-changed', this.__revertErrorMessage);
+        }
+      });
     },
   }];
 </script>
