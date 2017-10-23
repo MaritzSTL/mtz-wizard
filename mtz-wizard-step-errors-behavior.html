@@ -43,6 +43,7 @@
      */
     ready() {
       this.__revertErrorMessage = this.__revertErrorMessage.bind(this);
+      this.revertErrorMessages = this.revertErrorMessages.bind(this);
     },
     /**
      * Reverts the error message back to it's original state in order to preserve UI error messages.
@@ -110,15 +111,16 @@
           const field = this.form.querySelector(`[${keyAttr}="${error.field}"]`);
           if (!field) return;
 
-          field.originalErrorMessage = field[messageAttr];
-          field[messageAttr] = error.message;
           // Required to get the UI to update properly
-          field.setAttribute(messageAttr, '');
+          if (field.originalErrorMessage) field.setAttribute(`${messageAttr}`, field.originalErrorMessage);
+          else field.removeAttribute(`${messageAttr}`);
+          delete field.originalErrorMessage;
           field[invalidAttr] = false;
 
           field.removeEventListener('invalid-changed', this.__revertErrorMessage);
         }
       });
+      this.set('errors', null);
     },
   }];
 </script>

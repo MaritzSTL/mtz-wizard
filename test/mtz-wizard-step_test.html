@@ -112,6 +112,44 @@
           });
         });
         /* Public Methods */
+        describe('revertErrorMessages', () => {
+          const goodFieldError = {
+            step: 'step',
+            field: 'key-input',
+            message: 'error message',
+          };
+          let input, spy;
+
+          beforeEach((done) => {
+            element = fixture('withNonShadowForm');
+            element.errorMessageAttribute = 'foo';
+            element.invalidAttribute = 'bar';
+            element.keyAttribute = 'key';
+            // element.
+            flush(() => {
+              input = element.form.querySelector('#input');
+              spy = sinon.spy(input, 'removeEventListener');
+              element.errors = [goodFieldError];
+              done();
+            });
+          });
+
+          it('should remove the errors from the form inputs', (done) => {
+            element.revertErrorMessages();
+            flush(() => {
+              expect(input.getAttribute(element.errorMessageAttribute)).to.equal(null);
+              expect(input[element.invalidAttribute]).to.equal(false);
+              done();
+            });
+          });
+          it('should remove the invalid-changed event listener', () => {
+            element.revertErrorMessages();
+            flush(() => {
+              expect(spy).to.be.called;
+              done();
+            });
+          })
+        });
         describe('reset()', () => {
           it('should set invalid to false', () => {
             element._setInvalid(true);
