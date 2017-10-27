@@ -149,10 +149,12 @@ methods for navigation and `wizard-form` interactions, is responsible for render
        * @param {HTMLElement[]} [steps = this.steps]
        * @return {Boolean}
        */
-      async validate(steps = this.steps) {
-        return (await Promise.all((steps || []).map((step) => {
+      validate(steps = this.steps) {
+        return (Promise.all((steps || []).map((step) => {
           return step.validate ? step.validate() : Promise.resolve(true);
-        }))).every((stepIsValid) => stepIsValid);
+        }))).then((stepValids) => {
+          return stepValids.every(Boolean);
+        });
       },
       /**
        * Sets the fallback selection as the first item.
