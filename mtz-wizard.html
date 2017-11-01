@@ -153,9 +153,7 @@ methods for navigation and `wizard-form` interactions, is responsible for render
       validate(steps = this.steps) {
         return Promise.all((steps || []).
           map((step) => {
-            return step.validate ?
-              step.validate() :
-              Promise.resolve(true);
+            return Promise.resolve(!step.validate || step.validate());
           })).
           then((promises) => {
             return promises.every(Boolean);
