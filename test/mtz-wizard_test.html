@@ -223,12 +223,16 @@
               ];
             });
 
-            it('should return false if any step fails validation', () => {
-              expect(element.validate(steps)).to.equal(false);
+            it('should resolve false if any step fails validation', () => {
+              return element.validate(steps).then((valid) => {
+                expect(valid).to.be.false;
+              });
             });
-            it('should return true if all steps pass validation', () => {
-              steps[1].validate = () => true;
-              expect(element.validate(steps)).to.equal(true);
+            it('should resolve true if all steps pass validation', () => {
+              steps[1].validate = () => Promise.resolve(true);
+              return element.validate(steps).then((valid) => {
+                expect(valid).to.be.true;
+              });
             });
           });
           describe('without validatable steps', () => {
@@ -239,8 +243,10 @@
               ];
             });
 
-            it('should return true', () => {
-              expect(element.validate(steps)).to.equal(true);
+            it('should resolve true', () => {
+              return element.validate(steps).then((valid) => {
+                expect(valid).to.be.true;
+              });
             });
           });
         });

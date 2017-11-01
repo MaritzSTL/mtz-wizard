@@ -21,7 +21,7 @@
         type: Boolean,
         value: false,
         reflectToAttribute: true,
-        notify: true
+        notify: true,
       },
       /* Used to track the dirty state of the form, if there is one */
       dirty: {
@@ -45,7 +45,6 @@
       /* The validity state of the element */
       invalid: {
         type: Boolean,
-        readOnly: true,
         reflectToAttribute: true,
         notify: true,
         value: false
@@ -129,19 +128,21 @@
      */
     reset() {
       if (this.form) this.form.reset();
-      this._setInvalid(false);
+      this.invalid = false;
       this._setDirty(false);
     },
     /**
      * Validates all the required elements (custom and native) in the form, if one exists, and checks step validity.
+     * NOTE: this method is a promise so validation for the step in custom implementations can rely on async validation
+     *  via things like API services.
      *
-     * @return {Boolean}
+     * @return {Promise} - resolves with a Boolean that says if the wizard is valid or not
      */
     validate() {
       const validForm = !this.form || this.form.validate();
       const valid = !this.required || validForm;
-      this._setInvalid(!valid);
-      return valid;
+      this.invalid = !valid;
+      return Promise.resolve(valid);
     },
     /**
      * Sets the dirty state to true.

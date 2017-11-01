@@ -24,11 +24,6 @@
        * @type {Object.<{step: String, field: String, code: String, message: String}>}
        */
       errors: Array,
-      /* The attribute to set to true when an element is in error state */
-      invalidAttribute: {
-        type: String,
-        value: 'invalid'
-      },
       /*  The attribute to key off of when doing the lookup for fields within the form */
       keyAttribute: {
         type: String,
@@ -64,16 +59,14 @@
     },
     /**
      * Looks up each element based on the keyAttr for the associated error then sets the error message based on
-     *  messageAttr and toggles on the invalidAttr flag.
+     *  messageAttr and toggles on the invalid flag.
      * @private
      *
      * @param {Object[]} errors
      * @param {String} [messageAttr = this.errorMessageAttribute] - the attribute to set the message on
-     * @param {String} [invalidAttr = this.invalidAttribute] - the attribute to toggle for invalid state
      * @param {String} [keyAttr = this.keyAttribute] - the attribute to lookup on
      */
-    __setErrorState(errors, messageAttr = this.errorMessageAttribute, invalidAttr = this.invalidAttribute,
-      keyAttr = this.keyAttribute) {
+    __setErrorState(errors, messageAttr = this.errorMessageAttribute, keyAttr = this.keyAttribute) {
       if (!errors) return;
 
       errors.forEach((error) => {
@@ -82,16 +75,19 @@
           const field = this.form.querySelector(`[${keyAttr}="${error.field}"]`);
           if (!field) return;
 
+          // Store the original state for later
           field.originalErrorMessage = field[messageAttr];
+          // Update our invalid state and associated messaging
           field[messageAttr] = error.message;
-          // Required to get the UI to update properly
           field.setAttribute(messageAttr, error.message);
-          field[invalidAttr] = true;
+          field.invalid = true;
+          field.setAttribute('invalid', '');
 
           field.addEventListener('invalid-changed', this.__revertErrorMessage);
         }
       });
       this.set('errors', null);
+      this.invalid = true;
     },
   }];
 </script>

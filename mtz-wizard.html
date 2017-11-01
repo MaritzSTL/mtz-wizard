@@ -31,6 +31,7 @@ methods for navigation and `wizard-form` interactions, is responsible for render
         active: {
           type: Boolean,
           value: false,
+          reflectToAttribute: true,
         },
         /* The attribute to use to match the selection key against */
         attrForSelected: {
@@ -147,12 +148,19 @@ methods for navigation and `wizard-form` interactions, is responsible for render
        * Runs the validation logic on all steps with a form bound to them.
        *
        * @param {HTMLElement[]} [steps = this.steps]
-       * @return {Boolean}
+       * @return {Promise} - resolves with a Boolean that says if the wizard is valid or not
        */
       validate(steps = this.steps) {
-        return (steps || []).reduce((prev, step) => {
-          return prev && (step.validate ? step.validate() : true);
-        }, true);
+        return Promise.all((steps || []).
+          map((step) => {
+            return Promise.resolve(!step.validate || step.validate());
+          })).
+          then((promises) => {
+            return promises.every(Boolean);
+          }).
+          catch(() => {
+            return false;
+          });
       },
       /**
        * Sets the fallback selection as the first item.
