@@ -128,7 +128,7 @@
      */
     reset() {
       if (this.form) this.form.reset();
-      this._setInvalid(false);
+      this.invalid = false;
       this._setDirty(false);
     },
     /**
@@ -141,7 +141,7 @@
     validate() {
       const validForm = !this.form || this.form.validate();
       const valid = !this.required || validForm;
-      this._setInvalid(!valid);
+      this.invalid = !valid;
       return Promise.resolve(valid);
     },
     /**

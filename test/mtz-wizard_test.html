@@ -223,15 +223,15 @@
               ];
             });
 
-            it('should return false if any step fails validation', () => {
-              element.validate(steps).then((isValid) => {
-                expect(element.validate(steps)).to.equal(false);
+            it('should resolve false if any step fails validation', () => {
+              return element.validate(steps).then((valid) => {
+                expect(valid).to.be.false;
               });
             });
-            it('should return true if all steps pass validation', () => {
-              steps[1].validate = () => true;
-              element.validate(steps).then((isValid) => {
-                expect(element.validate(steps)).to.equal(true);
+            it('should resolve true if all steps pass validation', () => {
+              steps[1].validate = () => Promise.resolve(true);
+              return element.validate(steps).then((valid) => {
+                expect(valid).to.be.true;
               });
             });
           });
@@ -243,9 +243,9 @@
               ];
             });
 
-            it('should return true', () => {
-              element.validate(steps).then((isValid) => {
-                expect(isValid).to.equal(true);
+            it('should resolve true', () => {
+              return element.validate(steps).then((valid) => {
+                expect(valid).to.be.true;
               });
             });
           });

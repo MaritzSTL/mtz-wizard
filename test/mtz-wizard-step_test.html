@@ -16,7 +16,6 @@
     <link rel="import" href="../demo/demo-shadow-form.html">
   </head>
   <body>
-
     <test-fixture id="basic">
       <template>
         <mtz-wizard-step></mtz-wizard-step>
@@ -114,7 +113,7 @@
         /* Public Methods */
         describe('reset()', () => {
           it('should set invalid to false', () => {
-            element._setInvalid(true);
+            element.invalid = true;
             expect(element.invalid).to.equal(true);
             element.reset();
             expect(element.invalid).to.equal(false);
@@ -139,13 +138,17 @@
         });
         describe('validate()', () => {
           it('should return true when no form and !required', () => {
-            expect(element.validate()).to.equal(true);
-            expect(element.invalid).to.equal(false);
+            return element.validate().then((valid) => {
+              expect(valid).to.be.true;
+              expect(element.invalid).to.be.false;
+            });
           });
           it('should return true when no form and required', () => {
             element.required = true;
-            expect(element.validate()).to.equal(true);
-            expect(element.invalid).to.equal(false);
+            return element.validate().then((valid) => {
+              expect(valid).to.be.true;
+              expect(element.invalid).to.be.false;
+            });
           });
 
           describe('when there is a form', () => {
@@ -162,12 +165,16 @@
 
               it('should return true when required', () => {
                 element.required = true;
-                expect(element.validate()).to.equal(true);
-                expect(element.invalid).to.equal(false);
+                return element.validate().then((valid) => {
+                  expect(valid).to.be.true;
+                  expect(element.invalid).to.be.false;
+                });
               });
               it('should return true when !required', () => {
-                expect(element.validate()).to.equal(true);
-                expect(element.invalid).to.equal(false);
+                return element.validate().then((valid) => {
+                  expect(valid).to.be.true;
+                  expect(element.invalid).to.be.false;
+                });
               });
             });
             describe('and form.validate() fails', () => {
@@ -177,12 +184,16 @@
 
               it('should return false when required', () => {
                 element.required = true;
-                expect(element.validate()).to.equal(false);
-                expect(element.invalid).to.equal(true);
+                return element.validate().then((valid) => {
+                  expect(valid).to.be.false;
+                  expect(element.invalid).to.be.true;
+                });
               });
               it('should return true when !required', () => {
-                expect(element.validate()).to.equal(true);
-                expect(element.invalid).to.equal(false);
+                return element.validate().then((valid) => {
+                  expect(valid).to.be.true;
+                  expect(element.invalid).to.be.false;
+                });
               });
             });
           });
@@ -229,7 +240,7 @@
             });
           });
         });
-        describe('__setErrorState(errors, messageAttr, invalidAttr, keyAttr)', () => {
+        describe('__setErrorState(errors, messageAttr, keyAttr)', () => {
           const badFieldError = {
             step: 'step',
             field: 'bad-field',
@@ -278,13 +289,17 @@
             element.__setErrorState([goodFieldError]);
             expect(input[element.errorMessageAttribute]).to.equal(goodFieldError.message);
           });
-          it('should set field[invalidAttr] to true', () => {
+          it('should set field.invalid to true', () => {
             element.__setErrorState([goodFieldError]);
-            expect(input[element.invalidAttribute]).to.be.true;
+            expect(input.invalid).to.be.true;
           });
           it('should bind an event listener for invalid-changed', () => {
             element.__setErrorState([goodFieldError]);
             expect(spy).calledWith('invalid-changed', element.__revertErrorMessage);
+          });
+          it('should flag this step as invalid', () => {
+            element.__setErrorState([goodFieldError]);
+            expect(element.invalid).to.be.true;
           });
         });
         describe('__updateDirty()', () => {
